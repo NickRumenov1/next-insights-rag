@@ -1,0 +1,6 @@
+Query: Which company acquired Slack
+
+Article 1: Salesforce acquired Slack in 2021.
+Article 2: Slack is a workplace messaging product.
+
+Expected: Salesforce acquired Slack.

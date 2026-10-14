@@ -1,0 +1,21 @@
+---
+description: Use Context7 only for external library and API documentation
+alwaysApply: true
+---
+
+# Context7
+
+Use Context7 only for external libraries and their documentation: API references, framework setup, and code examples from packages this project does not own. Do not answer those from memory when Context7 is available.
+
+Do not use Context7 for this project's own code. Read the repo for how this project works.
+
+1. Call `resolve-library-id` with the library name and the task.
+2. Call `query-docs` with the returned library ID and the same task.
+3. Follow the docs Context7 returns, including the version they match.
+
+If a Context7 library ID is already known, such as `/vercel/next.js`, skip resolution and call `query-docs` with that ID.
+
+```txt
+resolve-library-id: libraryName "next.js", query "proxy file in Next.js 16"
+query-docs: libraryId "/vercel/next.js", query "proxy file in Next.js 16"
+```
