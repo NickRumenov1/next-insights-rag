@@ -1,0 +1,234 @@
+---
+# ===== T-001: both contain =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | Salesforce acquired Slack in 2021.
+  - art-2 | Salesforce acquired Slack for $27.7 billion.
+expected: Salesforce acquired Slack.
+source: art-1 [Graph], art-2 [Graph]
+
+---
+# ===== T-002: one contains =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | Salesforce acquired Slack in 2021.
+  - art-2 | Slack is a workplace messaging product.
+expected: Salesforce acquired Slack.
+source: art-1 [Graph]
+
+---
+# ===== T-003: none contain =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | Microsoft acquired LinkedIn in 2016.
+  - art-2 | Zoom launched a new video product.
+expected: No article states which company acquired Slack.
+source: none
+
+---
+# ===== T-004: different context =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | Slack is a great tool for internal communications.
+  - art-2 | Many teams use Slack to share daily updates.
+expected: No article states which company acquired Slack.
+source: none
+
+---
+# ===== T-005: one from RAG =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | After the takeover, Slack became part of Salesforce.
+  - art-2 | Zoom launched a new video product.
+expected: Salesforce acquired Slack.
+source: art-1 [RAG]
+
+---
+# ===== T-006: graph fact plus context =====
+query: Which company acquired Slack, and when?
+articles:
+  - art-1 | Salesforce acquired Slack.
+  - art-2 | The deal happened in 2023.
+expected: Salesforce acquired Slack in 2023.
+source: art-1 [Graph], art-2 [RAG]
+
+---
+# ===== T-007: similar deal, different company =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | Salesforce acquired Tableau.
+  - art-2 | Zoom launched a new video product.
+expected: No article states which company acquired Slack.
+source: none
+
+---
+# ===== T-008: both acquisitions =====
+query: Which company did Salesforce acquire?
+articles:
+  - art-1 | Salesforce acquired Slack.
+  - art-2 | Salesforce acquired Tableau.
+expected: Salesforce acquired Slack and Tableau.
+source: art-1 [Graph], art-2 [Graph]
+
+---
+# ===== T-009: clash =====
+query: When did Salesforce acquire Slack?
+articles:
+  - art-1 | Salesforce acquired Slack in 2021.
+  - art-2 | Salesforce acquired Slack in 2022.
+expected: The articles disagree. One says 2021 and the other says 2022.
+source: art-1 [Graph], art-2 [Graph]
+
+---
+# ===== T-010: synonym =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | Salesforce bought Slack in 2021.
+  - art-2 | Zoom launched a new video product.
+expected: Salesforce acquired Slack.
+source: art-1 [Graph]
+
+---
+# ===== T-011: close word, different relation =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | Salesforce invested in Slack in 2021.
+  - art-2 | Zoom launched a new video product.
+expected: No article states which company acquired Slack.
+source: none
+
+---
+# ===== T-012: query typo =====
+query: Which company acquired Slak?
+articles:
+  - art-1 | Salesforce acquired Slack in 2021.
+  - art-2 | Zoom launched a new video product.
+expected: Salesforce acquired Slack.
+source: art-1 [Graph]
+
+---
+# ===== T-013: different word =====
+query: Which company acquired Stack?
+articles:
+  - art-1 | Salesforce acquired Slack in 2021.
+  - art-2 | Zoom launched a new video product.
+expected: No article states which company acquired Stack.
+source: none
+
+---
+# ===== T-014: negation clash =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | Salesforce never acquired Slack.
+  - art-2 | Salesforce acquired Slack in 2021.
+expected: The articles disagree. One says Salesforce never acquired Slack. The other says Salesforce acquired Slack in 2021.
+source: art-1 [Graph], art-2 [Graph]
+
+---
+# ===== T-015: vector paraphrase =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | Slack now belongs to Salesforce.
+  - art-2 | Zoom launched a new video product.
+expected: Salesforce acquired Slack.
+source: art-1 [RAG]
+
+---
+# ===== T-016: vector near miss =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | Fans hope Slack will one day belong to Salesforce.
+  - art-2 | Zoom launched a new video product.
+expected: No article states which company acquired Slack.
+source: none
+
+---
+# ===== T-017: price, not a date =====
+query: When did Salesforce acquire Slack?
+articles:
+  - art-1 | Salesforce paid 20 billion for Slack.
+  - art-2 | Zoom launched a new video product.
+expected: No article states when Salesforce acquired Slack.
+source: none
+
+---
+# ===== T-018: reversed acquisition =====
+query: Who acquired Salesforce?
+articles:
+  - art-1 | Salesforce acquired Slack in 2025.
+  - art-2 | Salesforce acquired Tableau.
+expected: No article states which company acquired Salesforce.
+source: none
+
+---
+# ===== T-019: three acquisitions =====
+query: Which companies did Salesforce acquire?
+articles:
+  - art-1 | Salesforce acquired Slack.
+  - art-2 | Salesforce acquired Tableau.
+  - art-3 | Salesforce acquired MuleSoft.
+expected: Salesforce acquired Slack, Tableau, and MuleSoft.
+source: art-1 [Graph], art-2 [Graph], art-3 [Graph]
+
+---
+# ===== T-020: announced versus completed =====
+query: When did Salesforce acquire Slack?
+articles:
+  - art-1 | Salesforce announced its agreement to acquire Slack in December 2020.
+  - art-2 | Salesforce completed its acquisition of Slack in July 2021.
+expected: Salesforce acquired Slack in July 2021.
+source: art-2 [Graph]
+
+---
+# ===== T-021: name variations =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | Salesforce.com Inc. acquired Slack Technologies Inc.
+  - art-2 | Zoom launched a new video product.
+expected: Salesforce acquired Slack.
+source: art-1 [Graph]
+
+---
+# ===== T-022: owned after the deal =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | Following the deal, Slack became a Salesforce-owned business.
+  - art-2 | Zoom launched a new video product.
+expected: Salesforce acquired Slack.
+source: art-1 [RAG]
+
+---
+# ===== T-023: speculation =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | There is a speculation that Salesforce might acquire Slack someday.
+  - art-2 | Zoom launched a new video product.
+expected: No article states which company acquired Slack.
+source: none
+
+---
+# ===== T-024: explicit denial =====
+query: Which company acquired Slack?
+articles:
+  - art-1 | Salesforce did not acquire Slack.
+  - art-2 | Zoom launched a new video product.
+expected: No article states which company acquired Slack.
+source: none
+
+---
+# ===== T-025: year, not a month =====
+query: In which month did Salesforce acquire Slack?
+articles:
+  - art-1 | Salesforce acquired Slack in 2021.
+  - art-2 | Zoom launched a new video product.
+expected: No article states in which month Salesforce acquired Slack.
+source: none
+
+---
+# ===== T-026: company and completion date =====
+query: Which company acquired Slack, and when was the deal completed?
+articles:
+  - art-1 | Salesforce is the acquiring company.
+  - art-2 | The transaction was completed in July 2021.
+expected: Salesforce acquired Slack, and the deal was completed in July 2021.
+source: art-1 [Graph], art-2 [RAG]

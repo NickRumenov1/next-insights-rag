@@ -1,6 +1,0 @@
-Query: Which company acquired Slack
-
-Article 1: Salesforce acquired Slack in 2021.
-Article 2: Salesforce acquired Slack for $27.7 billion.
-
-Expected: Salesforce acquired Slack.

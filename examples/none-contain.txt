@@ -1,6 +1,0 @@
-Query: Which company acquired Slack
-
-Article 1: Microsoft acquired LinkedIn in 2016.
-Article 2: Zoom launched a new video product.
-
-Expected: No article states which company acquired Slack.
