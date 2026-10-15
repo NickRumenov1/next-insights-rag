@@ -4,9 +4,8 @@ Analysts ask a question over a small set of articles and get a short answer back
 
 ## Requirements
 
-- Ingest the provided articles.
-- Accept one natural-language question.
-- Answer from structured facts in the articles (such as acquisitions and partnerships) and from the article text together.
-- Cite the articles that support the answer, and whether each came from the knowledge graph or from vector search.
-- If the articles do not support an answer, say so.
-- Show a question box and the answer.
+- REQ-001: Create the application using Next.js 16.4.0.
+- REQ-002: Display a query input, answer box & upload form 
+- REQ-003: Build a knowledge graphfrom the provided dataset.
+- REQ-003: Build a vector index from the provided dataset.
+- REQ-004: Implement hybrid retrieval using the knowledge graph and vector index to answer complex queries.
