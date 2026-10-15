@@ -1,0 +1,25 @@
+---
+description: Implement only what is requested only
+alwaysApply: true
+---
+
+# Minimal Code Rules
+
+Follow these rules for every coding task.
+
+1. **Implement only what is requested.** Do not add features, improvements, or functionality that I did not explicitly ask for.
+2. **Write the minimum code necessary.** Prefer the simplest working solution over a sophisticated or generalized one.
+3. **Avoid unnecessary abstractions.** Do not introduce extra classes, interfaces, services, factories, wrappers, helpers, repositories, or design patterns unless they solve a concrete problem in the current task.
+4. **Minimize file creation.** Prefer modifying existing files. Create a new file only when there is a clear technical reason.
+5. **Reuse existing code.** Inspect the repository first and use existing functions, utilities, dependencies, and conventions.
+6. **No speculative engineering.** Do not build for hypothetical future requirements. No premature generalization, unnecessary configuration, or over-engineered error handling.
+7. **No unrelated refactoring.** Do not rename, reorganize, or rewrite code outside the scope of the request.
+8. **Keep dependencies unchanged.** Do not install new packages unless they are genuinely required.
+9. **Preserve existing behavior.** Make the smallest change that correctly implements the requested functionality.
+10. **Do not over-explain or over-plan.** Briefly state the intended changes, implement them, and summarize the result.
+
+Before coding, inspect the relevant existing files. If the task can be solved by modifying one existing function, do that instead of creating a new architecture.
+
+If you believe additional files, abstractions, dependencies, or architectural changes are necessary, explain why before introducing them.
+
+**Default rule: choose the smallest correct implementation. Optimize for simplicity, not extensibility.**

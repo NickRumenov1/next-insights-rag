@@ -237,8 +237,8 @@ source: art-1 [Graph], art-2 [RAG]
 # ===== T-027: both conditions, split evidence =====
 query: Which database companies acquired AI startups and published vector-search papers?
 articles:
-art-1 | MongoDB acquired AI startup Voyage.
-art-2 | MongoDB published a paper on vector search.
+  - art-1 | MongoDB acquired AI startup Voyage.
+  - art-2 | MongoDB published a paper on vector search.
 expected: MongoDB acquired an AI startup and published a paper on vector search.
 source: art-1 [Graph], art-2 [RAG]
 

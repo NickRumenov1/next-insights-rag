@@ -31,10 +31,25 @@ export default function Home() {
     };
   }, []);
 
-  function onSearch(event: React.FormEvent<HTMLFormElement>) {
+  async function onSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    
-    console.log("Searching for: ", query);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      const payload = (await response.json()) as { answer?: string; error?: string };
+      if (!response.ok) {
+        setError(payload.error ?? "Could not search the articles.");
+        return;
+      }
+      setAnswer(payload.answer ?? "");
+    } catch {
+      setError("Could not search the articles.");
+    }
   }
 
   async function onFileChange(event: React.ChangeEvent<HTMLInputElement>) {

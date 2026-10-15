@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  serverExternalPackages: ["unpdf"],
+  serverExternalPackages: ["unpdf", "hnswlib-node"],
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
