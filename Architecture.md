@@ -23,6 +23,8 @@ flowchart TD
     Articles["Articles"] --> VectorBranch["Vector branch"]
     VectorBranch --> Splitter["LangChain RecursiveCharacterTextSplitter<br/>chunkSize 500, overlap 50"]
     Splitter --> Chunks["Text chunks"]
+    Chunks --> Embedder["OpenAI Embeddings API<br/>model text-embedding-3-small<br/>one batched request per article"]
+    Embedder --> Vectors["Embedding vectors<br/>1536 dimensions, one per chunk"]
 ```
 
 ### 2. Query 

@@ -50,3 +50,9 @@
 {"date": "15.10 10:57", "model_id": "claude-sonnet-5-5", "prompt": "Not exactly, we need to call one common function that will orchestrate the text to both pipelines. We need langchain and its text splitting for the vector branch only. So plan a common function that will orchestrate to both branches but for this plan consider only LangChain and text splitting"}
 {"date": "15.10 10:59", "model_id": "claude-sonnet-5-5", "prompt": "implement, the main goal is to print the text after LangChain only"}
 {"date": "15.10 11:22", "model_id": "claude-sonnet-5-5", "prompt": "draw this step in the diagram @Architecture.md - the step with the lancgchain and code spltting only"}
+{"date": "15.10 11:30", "model_id": "claude-sonnet-5-5", "prompt": "Plan the next small step, to create embeddings with open ai embeddings api,\nOnly creating them, no storing and nothing else. Implement that without big abstraction and side things, install relevant openai package"}
+{"date": "15.10 11:45", "model_id": "claude-sonnet-5-5", "prompt": "Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.\n\nTo-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos."}
+{"date": "15.10 13:03", "model_id": "claude-sonnet-5-5", "prompt": "text-embedding-3-small is this the most suitable model for our case"}
+{"date": "15.10 13:04", "model_id": "claude-sonnet-5-5", "prompt": "what are the price differences between text-embedding-3-large and text-embedding-3-small?"}
+{"date": "15.10 13:12", "model_id": "claude-sonnet-5-5", "prompt": "@lib/rag/vector/index.ts:10-13 print if it is successfully embedded"}
+{"date": "15.10 13:48", "model_id": "claude-sonnet-5-5", "prompt": "@Architecture.md Draw this step in the diagram, add a bit more info like OpenAI and text-embedding-3-small model"}
