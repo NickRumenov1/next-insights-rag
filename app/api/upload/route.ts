@@ -1,26 +1,19 @@
-import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { connection } from "next/server";
-import { extractText } from "unpdf";
-
-type ArticleKind = "txt" | "pdf";
+import {
+  ARTICLES_DIR,
+  articleKind,
+  HttpError as UploadError,
+  isMissing,
+  textFromBytes,
+} from "@/lib/articles";
 
 type StoredArticle = {
   id: string;
   name: string;
   text: string;
 };
-
-class UploadError extends Error {
-  constructor(
-    message: string,
-    readonly status: number,
-  ) {
-    super(message);
-  }
-}
-
-const ARTICLES_DIR = path.join(process.cwd(), "data", "articles");
 
 export async function GET() {
   await connection();
@@ -74,36 +67,14 @@ export async function POST(request: Request) {
   }
 }
 
-function articleKind(filename: string): ArticleKind | null {
-  const lower = filename.toLowerCase();
-  if (lower.endsWith(".txt")) return "txt";
-  if (lower.endsWith(".pdf")) return "pdf";
-  return null;
-}
-
-async function textFromBytes(bytes: Buffer, kind: ArticleKind): Promise<string> {
-  if (kind === "txt") return bytes.toString("utf8").replace(/^\uFEFF/, "");
-
-  if (!bytes.subarray(0, 5).toString("utf8").startsWith("%PDF-")) {
-    throw new UploadError("That PDF could not be read.", 422);
-  }
-
-  try {
-    const { text } = await extractText(new Uint8Array(bytes), { mergePages: true });
-    return text;
-  } catch {
-    throw new UploadError("That PDF could not be read.", 422);
-  }
-}
-
 async function createArticleLocation(originalName: string): Promise<{
   id: string;
   name: string;
   filePath: string;
 }> {
-  await migrateLegacyIds();
   const id = await nextShortId();
-  const name = originalFilename(originalName);
+  const name = path.win32.basename(path.posix.basename(originalName)).trim() || "article";
+
   return {
     id,
     name,
@@ -112,7 +83,6 @@ async function createArticleLocation(originalName: string): Promise<{
 }
 
 async function listArticles(): Promise<StoredArticle[]> {
-  await migrateLegacyIds();
 
   let ids: string[];
   try {
@@ -172,56 +142,9 @@ async function nextShortId(): Promise<string> {
   return String(next);
 }
 
-async function migrateLegacyIds(): Promise<void> {
-  let ids: string[];
-  try {
-    ids = await readdir(ARTICLES_DIR);
-  } catch (error) {
-    if (isMissing(error)) return;
-    throw error;
-  }
-
-  const legacy: { id: string; mtime: number }[] = [];
-  for (const id of ids) {
-    if (/^\d+$/.test(id)) continue;
-    const metaPath = path.join(ARTICLES_DIR, id, "article.json");
-    try {
-      const info = await stat(metaPath);
-      legacy.push({ id, mtime: info.mtimeMs });
-    } catch (error) {
-      if (isMissing(error)) continue;
-      throw error;
-    }
-  }
-
-  legacy.sort((left, right) => left.mtime - right.mtime);
-
-  for (const entry of legacy) {
-    const nextId = await nextShortId();
-    const destination = path.join(ARTICLES_DIR, nextId);
-    await rename(path.join(ARTICLES_DIR, entry.id), destination);
-    const metaPath = path.join(destination, "article.json");
-    const meta = JSON.parse(await readFile(metaPath, "utf8")) as { id: string; name: string };
-    await writeFile(metaPath, JSON.stringify({ ...meta, id: nextId }));
-  }
-}
-
-function originalFilename(filename: string): string {
-  const name = path.win32.basename(path.posix.basename(filename)).trim();
-  return name || "article";
-}
 
 function sanitizeFilename(filename: string): string {
   const cleaned = filename.replace(/[\u0000-\u001f]/g, "").replace(/[/\\]/g, "").trim();
   if (!cleaned || cleaned === "." || cleaned === "..") return "article";
   return cleaned.slice(0, 180);
-}
-
-function isMissing(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "ENOENT"
-  );
 }

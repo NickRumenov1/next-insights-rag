@@ -20,7 +20,9 @@ Knowledge Graph: `graphology`
 
 ```mermaid
 flowchart TD
-    Articles["Articles"]
+    Articles["Articles"] --> VectorBranch["Vector branch"]
+    VectorBranch --> Splitter["LangChain RecursiveCharacterTextSplitter<br/>chunkSize 500, overlap 50"]
+    Splitter --> Chunks["Text chunks"]
 ```
 
 ### 2. Query 

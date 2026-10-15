@@ -65,11 +65,18 @@ export default function Home() {
         return;
       }
       if (payload.article) {
+        const uploaded = payload.article;
         setArticles((current) =>
-          current.some((item) => item.id === payload.article?.id)
+          current.some((item) => item.id === uploaded.id)
             ? current
-            : [...current, payload.article as ArticleItem],
+            : [...current, uploaded],
         );
+
+        const processed = await fetch(`/api/articles/${uploaded.id}/process`, { method: "POST" });
+        if (!processed.ok) {
+          const failure = (await processed.json().catch(() => null)) as { error?: string } | null;
+          setError(failure?.error ?? "Could not process that article.");
+        }
       }
     } catch {
       setError("Could not read that file.");
