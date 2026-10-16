@@ -14,6 +14,9 @@ export default function Home() {
   const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [reading, setReading] = useState(false);
+  const [title, setTitle] = useState("");
+  const [articleText, setArticleText] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -99,6 +102,39 @@ export default function Home() {
     }
   }
 
+  async function onSaveText(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setSaving(true);
+
+    try {
+      const response = await fetch("/api/articles/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, text: articleText }),
+      });
+      const payload = (await response.json()) as { error?: string; article?: ArticleItem };
+      if (!response.ok || !payload.article) {
+        setError(payload.error ?? "Could not save the article.");
+        return;
+      }
+      const saved = payload.article;
+      setArticles((current) => [...current, saved]);
+      setTitle("");
+      setArticleText("");
+
+      const processed = await fetch(`/api/articles/${saved.id}/process`, { method: "POST" });
+      if (!processed.ok) {
+        const failure = (await processed.json().catch(() => null)) as { error?: string } | null;
+        setError(failure?.error ?? "Could not process that article.");
+      }
+    } catch {
+      setError("Could not save the article.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function onDeleteArticles() {
     setError(null);
 
@@ -169,8 +205,35 @@ export default function Home() {
           {error ? <p className="text-sm text-red-300">{error}</p> : null}
           <div className="flex items-center gap-3 text-sm text-zinc-400">
             <span className="h-px flex-1 bg-zinc-700" />
+            <span>Or</span>
+            <span className="h-px flex-1 bg-zinc-700" />
           </div>
         </form>
+        <form className="flex w-full flex-col gap-3" onSubmit={onSaveText}>
+          <input
+            type="text"
+            value={title}
+            placeholder="Title"
+            onChange={(event) => setTitle(event.target.value)}
+            className="h-12 rounded-lg border border-zinc-600 bg-zinc-900 px-4 text-sm text-zinc-50 outline-none placeholder:text-zinc-400 focus:border-zinc-300"
+          />
+          <textarea
+            value={articleText}
+            placeholder="Article text"
+            rows={6}
+            onChange={(event) => setArticleText(event.target.value)}
+            className="rounded-lg border border-zinc-600 bg-zinc-900 px-4 py-3 text-sm text-zinc-50 outline-none placeholder:text-zinc-400 focus:border-zinc-300"
+          />
+          <button
+            type="submit"
+            style={{ cursor: "pointer" }}
+            disabled={saving || title.trim().length === 0 || articleText.trim().length === 0}
+            className="h-12 rounded-lg bg-zinc-100 px-5 text-sm font-medium text-zinc-950 hover:bg-white disabled:opacity-60"
+          >
+            {saving ? "Saving…" : "Save"}
+          </button>
+        </form>
+        <hr />
         {articles.length > 0 ? (
           <button
             type="button"
@@ -178,7 +241,7 @@ export default function Home() {
             style={{ cursor: "pointer" }}
             className="h-12 rounded-lg border border-red-400 px-5 text-sm font-medium text-red-300 hover:bg-red-950"
           >
-            Delete articles
+            Delete all articles
           </button>
         ) : null}
         {articles.length > 0 ? (

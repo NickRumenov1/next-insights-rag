@@ -18,7 +18,7 @@
 /out/
 
 # uploaded articles
-/data/articles/
+/data/
 
 # production
 /build
