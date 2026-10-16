@@ -83,3 +83,17 @@
 {"date": "16.10 10:55", "model_id": "claude-sonnet-5-5", "prompt": "Implement extractFacts, indexForGraph and clearGraph in lib/rag/graph/index.ts with a globalThis MultiDirectedGraph\n\nShouldnt we split these function on a todo for every single one of them"}
 {"date": "16.10 10:58", "model_id": "claude-sonnet-5-5", "prompt": "Implement that"}
 {"date": "16.10 11:43", "model_id": "claude-sonnet-5-5", "prompt": "temperature: 0 and gpt-4o-mini - is this good enough setup, shouldnt we add a bit more temperature?"}
+{"date": "16.10 11:46", "model_id": "claude-sonnet-5-5", "prompt": "Create the Query part of the diagram with very detailed boxes including configurations, models, even separate functions that are called. draw everything that we have by now @Architecture.md "}
+{"date": "16.10 11:48", "model_id": "claude-sonnet-5-5", "prompt": "\"Response.json({ answer })trimmed choices[0\" Cannot get this one, looks like redundant, remove it"}
+{"date": "16.10 11:49", "model_id": "claude-sonnet-5-5", "prompt": "ADd it like that in the @Architecture.md file"}
+{"date": "16.10 11:51", "model_id": "claude-sonnet-5-5", "prompt": "remove \"query is a non-empty string\" from the diagram and its 400 http error path"}
+{"date": "16.10 11:51", "model_id": "claude-sonnet-5-5", "prompt": "start with \"Response.json({ answer })trimmed choices[0"}
+{"date": "16.10 11:52", "model_id": "claude-sonnet-5-5", "prompt": "app/page.tsx - change it with a user icon or a human body"}
+{"date": "16.10 11:54", "model_id": "claude-sonnet-5-5", "prompt": "remove negative path if \"chunks empty<br/>or <b>index.dat</b>\" focus on the happy path"}
+{"date": "16.10 11:55", "model_id": "claude-sonnet-5-5", "prompt": "put the Analyst on the top of the diagram "}
+{"date": "16.10 11:58", "model_id": "claude-sonnet-5-5", "prompt": "split both paths after the search/route.ts \n1st on the left - Retrieval searchVectors as it is no and put another path from the right for the \"matchingt entities fromt he graph node\""}
+{"date": "16.10 11:59", "model_id": "claude-sonnet-5-5", "prompt": "500 Could not search the articles - remove this node "}
+{"date": "16.10 12:00", "model_id": "claude-sonnet-5-5", "prompt": "put Dense ranker and Sparse ranker on pretty much same level"}
+{"date": "16.10 12:01", "model_id": "claude-sonnet-5-5", "prompt": "remove the box for \"two rankers\" so from \"readChunks\" split both \"dense\" & \"sparse\" rankers"}
+{"date": "16.10 12:02", "model_id": "claude-sonnet-5-5", "prompt": "put the MultiDirectedGraph more on the right and once having more space make Sparse ranke in same line as dense ranker"}
+{"date": "16.10 12:06", "model_id": "claude-sonnet-5-5", "prompt": "Remove Promise.all from indexing"}
