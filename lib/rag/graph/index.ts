@@ -1,4 +1,4 @@
-import type { ArticleInput } from "@/lib/rag/types";
+import type { ArticleInput } from "@/app/api/articles/[articleId]/process/route";
 
 // Placeholder: the graph branch is not implemented yet.
 export async function indexForGraph(input: ArticleInput): Promise<null> {

@@ -1,24 +1,10 @@
-import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { connection } from "next/server";
 import {
   ARTICLES_DIR,
   articleKind,
   HttpError as UploadError,
-  isMissing,
-  textFromBytes,
 } from "@/lib/articles";
-
-type StoredArticle = {
-  id: string;
-  name: string;
-  text: string;
-};
-
-export async function GET() {
-  await connection();
-  return Response.json({ articles: await listArticles() });
-}
 
 export async function POST(request: Request) {
   try {
@@ -43,15 +29,12 @@ export async function POST(request: Request) {
     try {
       await mkdir(path.dirname(location.filePath), { recursive: true });
       await writeFile(location.filePath, bytes);
-      const text = await textFromBytes(bytes, kind);
       await writeFile(
         path.join(ARTICLES_DIR, location.id, "article.json"),
         JSON.stringify({ id: location.id, name: location.name }),
       );
-      console.log("Uploaded article text: ", text);
       return Response.json({
-        text,
-        article: { id: location.id, name: location.name, text },
+        article: { id: location.id, name: location.name },
       });
     } catch (error) {
       await rm(path.join(ARTICLES_DIR, location.id), { recursive: true, force: true });
@@ -82,59 +65,12 @@ async function createArticleLocation(originalName: string): Promise<{
   };
 }
 
-async function listArticles(): Promise<StoredArticle[]> {
-
-  let ids: string[];
-  try {
-    ids = await readdir(ARTICLES_DIR);
-  } catch (error) {
-    if (isMissing(error)) return [];
-    throw error;
-  }
-
-  const articles = await Promise.all(
-    ids.map(async (id) => {
-      try {
-        const directory = path.join(ARTICLES_DIR, id);
-        const metaPath = path.join(directory, "article.json");
-        const meta = JSON.parse(await readFile(metaPath, "utf8")) as {
-          id: string;
-          name: string;
-        };
-        const info = await stat(metaPath);
-        const names = await readdir(directory);
-        const sourceName = names.find((name) => name !== "article.json");
-        const text = sourceName ? await readStoredText(path.join(directory, sourceName)) : "";
-        return { id: meta.id, name: meta.name, text, mtime: info.mtimeMs };
-      } catch (error) {
-        if (isMissing(error)) return null;
-        throw error;
-      }
-    }),
-  );
-
-  return articles
-    .filter((article): article is StoredArticle & { mtime: number } => article !== null)
-    .sort((left, right) => left.mtime - right.mtime)
-    .map(({ id, name, text }) => ({ id, name, text }));
-}
-
-async function readStoredText(filePath: string): Promise<string> {
-  const kind = articleKind(filePath);
-  if (!kind) return "";
-  try {
-    return await textFromBytes(await readFile(filePath), kind);
-  } catch {
-    return "";
-  }
-}
-
 async function nextShortId(): Promise<string> {
   let ids: string[] = [];
   try {
     ids = await readdir(ARTICLES_DIR);
   } catch (error) {
-    if (!isMissing(error)) throw error;
+    console.error(error);
   }
 
   const numbers = ids.map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0);

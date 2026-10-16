@@ -18,7 +18,7 @@ export default function Home() {
   useEffect(() => {
     let cancelled = false;
 
-    void fetch("/api/upload")
+    void fetch("/api/articles")
       .then(async (response) => {
         if (!response.ok) return;
         const payload = (await response.json()) as { articles?: ArticleItem[] };
@@ -71,7 +71,6 @@ export default function Home() {
       body.set("file", file);
       const response = await fetch("/api/upload", { method: "POST", body });
       const payload = (await response.json()) as {
-        text?: string;
         error?: string;
         article?: ArticleItem;
       };
@@ -100,6 +99,22 @@ export default function Home() {
     }
   }
 
+  async function onDeleteArticles() {
+    setError(null);
+
+    try {
+      const response = await fetch("/api/delete", { method: "DELETE" });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        setError(payload?.error ?? "Could not delete the articles.");
+        return;
+      }
+      setArticles([]);
+    } catch {
+      setError("Could not delete the articles.");
+    }
+  }
+
   return (
     <div className="flex flex-1 bg-zinc-950 font-sans text-zinc-100">
       <main className="flex w-full flex-col gap-10 px-8 py-10 sm:px-12 sm:py-14 md:flex-row md:items-start md:justify-between">
@@ -115,6 +130,7 @@ export default function Home() {
             />
             <button
               type="submit"
+              style={{ cursor: "pointer" }}
               disabled={query.trim().length === 0}
               className="h-16 shrink-0 rounded-lg bg-zinc-100 px-5 text-sm font-medium text-zinc-950 hover:bg-white disabled:opacity-60"
             >
@@ -155,6 +171,16 @@ export default function Home() {
             <span className="h-px flex-1 bg-zinc-700" />
           </div>
         </form>
+        {articles.length > 0 ? (
+          <button
+            type="button"
+            onClick={onDeleteArticles}
+            style={{ cursor: "pointer" }}
+            className="h-12 rounded-lg border border-red-400 px-5 text-sm font-medium text-red-300 hover:bg-red-950"
+          >
+            Delete articles
+          </button>
+        ) : null}
         {articles.length > 0 ? (
           <ul aria-label="Articles" className="flex flex-col gap-2">
             {articles.map((item) => (

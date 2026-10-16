@@ -1,4 +1,4 @@
-import type { ArticleInput, Chunk } from "@/lib/rag/types";
+import type { ArticleInput, Chunk } from "@/app/api/articles/[articleId]/process/route";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { HierarchicalNSW } from "hnswlib-node";
 import { existsSync } from "node:fs";
@@ -8,7 +8,7 @@ import OpenAI from "openai";
 
 const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 500, chunkOverlap: 50 });
 
-const VECTOR_DIR = path.join(process.cwd(), "data", "vectors");
+export const VECTOR_DIR = path.join(process.cwd(), "data", "vectors");
 export const INDEX_FILE = path.join(VECTOR_DIR, "index.dat");
 const CHUNKS_FILE = path.join(VECTOR_DIR, "chunks.json"); // position in the array == hnsw label
 

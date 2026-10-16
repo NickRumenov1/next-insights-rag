@@ -1,5 +1,5 @@
 import { bm25Rank, embedChunks, INDEX_FILE, readChunks } from "@/lib/rag/vector";
-import type { Chunk } from "@/lib/rag/types";
+import type { Chunk } from "@/app/api/articles/[articleId]/process/route";
 import { existsSync } from "node:fs";
 import { HierarchicalNSW } from "hnswlib-node";
 import OpenAI from "openai";

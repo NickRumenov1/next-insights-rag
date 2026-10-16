@@ -66,3 +66,14 @@
 {"date": "15.10 14:15", "model_id": "claude-sonnet-5-5", "prompt": "we need BM25 Sparse and Dense search right"}
 {"date": "15.10 14:17", "model_id": "claude-sonnet-5-5", "prompt": "Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.\n\nTo-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos."}
 {"date": "15.10 14:35", "model_id": "claude-sonnet-5-5", "prompt": "For the code present, we get this error:\n```\nCannot find name 'readChunks'.\n```\nFix it, verify, and then give a concise explanation. @app/api/search/route.ts:23-26 \nImport it from @lib/rag/vector/index.ts "}
+{"date": "15.10 15:42", "model_id": "claude-sonnet-5-5", "prompt": "@lib/rag/process-article.ts:6 Move this function in the corresponding api route.ts file and same for @lib/rag/types.ts "}
+{"date": "15.10 15:46", "model_id": "claude-sonnet-5-5", "prompt": "Create a button above to the articles list that deletes all articles \"Delete articles\""}
+{"date": "15.10 15:47", "model_id": "claude-sonnet-5-5", "prompt": "add a new handler app/api/delete/route.ts and move that there"}
+{"date": "16.10 10:00", "model_id": "claude-sonnet-5-5", "prompt": "@lib/articles.ts Some of the functions here are used in sinle api routes only, move them in the corresposponding files within @app/api/ "}
+{"date": "16.10 10:04", "model_id": "claude-sonnet-5-5", "prompt": "Why we need to read the text here, if the only reason is to print it - remove that section"}
+{"date": "16.10 10:06", "model_id": "claude-sonnet-5-5", "prompt": "Yes, fully remove it"}
+{"date": "16.10 10:09", "model_id": "claude-sonnet-5-5", "prompt": "@app/api/upload/route.ts:83-84 List articles function shouldnt be here, move it in @app/api/articles/ as a new get endpoint"}
+{"date": "16.10 10:13", "model_id": "claude-sonnet-5-5", "prompt": "@lib/articles.ts:39 we dont need this isMissing in the catch blocks, just print the error, remove the entire function and from the the places that is used"}
+{"date": "16.10 10:30", "model_id": "claude-sonnet-5-5", "prompt": "@Architecture.md Add more details to the diagram, e,g, add which library is used in \"Embedding vectors\" section"}
+{"date": "16.10 10:32", "model_id": "claude-sonnet-5-5", "prompt": "Can we add bold fonts for paths and technical keywords like embeddings.create or @langchain/textsplitters\n"}
+{"date": "16.10 10:33", "model_id": "claude-sonnet-5-5", "prompt": "make cells bigger and bigger font size "}
