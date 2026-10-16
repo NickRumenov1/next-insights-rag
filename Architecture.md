@@ -26,7 +26,7 @@ flowchart TD
     Extract --> Parallel{"<b>Promise.all</b>"}
 
     Parallel --> VectorBranch["Vector branch<br/><b>lib/rag/vector</b>"]
-    Parallel --> GraphBranch["Graph branch<br/><b>lib/rag/graph</b><br/><b>graphology</b>, not implemented yet"]
+    Parallel --> GraphBranch["Graph branch<br/><b>lib/rag/graph</b>"]
 
     VectorBranch --> Splitter["<b>@langchain/textsplitters</b><br/><b>RecursiveCharacterTextSplitter</b><br/><b>chunkSize</b> 500, <b>overlap</b> 50"]
     Splitter --> Chunks["Text chunks<br/>id <b>{articleId}-{index}</b>, <b>articleId</b>, <b>index</b>, <b>text</b>"]
@@ -34,6 +34,9 @@ flowchart TD
     Embedder --> Vectors["Embedding vectors<br/>1536 dimensions, one per chunk"]
     Vectors --> HnswIndex["<b>hnswlib-node</b> <b>HierarchicalNSW</b><br/>cosine space, label = chunk position<br/><b>data/vectors/index.dat</b>"]
     Chunks --> ChunksFile["Chunk store<br/><b>data/vectors/chunks.json</b><br/>array position = HNSW label"]
+
+    GraphBranch --> Facts["Fact extraction<br/><b>gpt-4o-mini</b> JSON triples<br/>seed entity types and predicates"]
+    Facts --> GraphStore["<b>graphology</b> <b>MultiDirectedGraph</b><br/>in memory, on <b>globalThis</b><br/>node = entity, edge = predicate, <b>articleId</b>, date, negated"]
 ```
 
 ### 2. Query 

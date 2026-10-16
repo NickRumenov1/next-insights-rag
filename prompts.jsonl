@@ -77,3 +77,9 @@
 {"date": "16.10 10:30", "model_id": "claude-sonnet-5-5", "prompt": "@Architecture.md Add more details to the diagram, e,g, add which library is used in \"Embedding vectors\" section"}
 {"date": "16.10 10:32", "model_id": "claude-sonnet-5-5", "prompt": "Can we add bold fonts for paths and technical keywords like embeddings.create or @langchain/textsplitters\n"}
 {"date": "16.10 10:33", "model_id": "claude-sonnet-5-5", "prompt": "make cells bigger and bigger font size "}
+{"date": "16.10 10:45", "model_id": "claude-sonnet-5-5", "prompt": "Plan graphological branch. No additional implementation, only core needed feature related to knowledge graph storing, use \"graphological\" library for in-memory storage"}
+{"date": "16.10 10:51", "model_id": "claude-sonnet-5-5", "prompt": "Should we include default initial graph schema with basic entities and relationships like: \"acquire\", \"company\", \"startup\" etc"}
+{"date": "16.10 10:54", "model_id": "claude-sonnet-5-5", "prompt": "The articles in the requirenments are: thousands of tech news articles, financial reports, and press releases daily \nMy understanding is that mostly these words for companies, acquisions are good candidates for the initial schema and within another implementation we can the schema to grow based on the searches and articles"}
+{"date": "16.10 10:55", "model_id": "claude-sonnet-5-5", "prompt": "Implement extractFacts, indexForGraph and clearGraph in lib/rag/graph/index.ts with a globalThis MultiDirectedGraph\n\nShouldnt we split these function on a todo for every single one of them"}
+{"date": "16.10 10:58", "model_id": "claude-sonnet-5-5", "prompt": "Implement that"}
+{"date": "16.10 11:43", "model_id": "claude-sonnet-5-5", "prompt": "temperature: 0 and gpt-4o-mini - is this good enough setup, shouldnt we add a bit more temperature?"}

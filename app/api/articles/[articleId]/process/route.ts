@@ -16,7 +16,7 @@ export type Chunk = { id: string; articleId: string; index: number; text: string
 export type ProcessResult = {
   articleId: string;
   vector: { chunks: Chunk[] };
-  graph: null; // placeholder until the graph branch is implemented
+  graph: { nodes: number; edges: number };
 };
 
 /** Reads a stored article's name and extracted text. Throws HttpError 404/422. */
