@@ -28,7 +28,7 @@ flowchart TD
 
     VectorBranch --> Splitter["<b>@langchain/textsplitters</b><br/><b>RecursiveCharacterTextSplitter</b><br/><b>chunkSize</b> 500, <b>overlap</b> 50"]
     Splitter --> Chunks["Text chunks<br/>id <b>{articleId}-{index}</b>, <b>articleId</b>, <b>index</b>, <b>text</b>"]
-    Chunks --> Embedder["<b>openai</b> SDK: <b>embeddings.create</b><br/>model <b>text-embedding-3-small</b><br/>one batched request per article"]
+    Chunks --> Embedder["<b>Openai</b>: <b>embeddings.create</b><br/>model <b>text-embedding-3-small</b><br/>one batched request per article"]
     Embedder --> Vectors["Embedding vectors<br/>1536 dimensions, one per chunk"]
     Vectors --> HnswIndex["<b>hnswlib-node</b> <b>HierarchicalNSW</b><br/>cosine space, label = chunk position<br/><b>data/vectors/index.dat</b>"]
     Chunks --> ChunksFile["Chunk store<br/><b>data/vectors/chunks.json</b><br/>array position = HNSW label"]
@@ -43,9 +43,10 @@ flowchart TD
 %%{init: {"themeVariables": {"fontSize": "26"}, "flowchart": {"padding": 28, "nodeSpacing": 200, "rankSpacing": 70}}}%%
 flowchart TD
     UI["👤<br/><b>Analyst</b><br/>asks a question in the app<br/><b>fetch</b> POST <b>/api/search</b><br/>body <b>{ query }</b>"] --> Route["<b>POST /api/search</b><br/><b>app/api/search/route.ts</b>"]
-    Route --> Retrieve["Retrieval<br/><b>searchVectors(query, k = 5)</b>"]
-    Route --> GraphMatch["Match entities from the graph nodes<br/><b>graphology</b> <b>MultiDirectedGraph</b><br/>not implemented yet"]
-
+    Route --> Retrieve["Retrieval<br/><b>searchVectors(query, k = 5)</b><br/><b>app/api/search/route.ts</b>"]
+    Route --> GraphMatch["<b>matchEntities(query)</b><br/><b>app/api/search/route.ts</b><br/>returns [] when <b>graph.order</b> is 0"]
+    GraphMatch --> ExtractNames["<b>extractQueryNames(query)</b><br/><b>app/api/search/route.ts</b><br/><b>OpenAI</b>: <b>chat.completions.create</b><br/>model <b>gpt-4o-mini</b>, <b>temperature</b> 0, JSON object response<br/>extracts proper names from the query alone<br/>returns [] when none, skipping request 2"]
+    ExtractNames --> MapNodes["<b>mapNamesToNodes(names)</b><br/><b>app/api/search/route.ts</b><br/><b>openai</b> SDK: <b>chat.completions.create</b><br/>model <b>gpt-4o-mini</b>, <b>temperature</b> 0, JSON object response<br/>maps the names to <b>graph.nodes()</b> of the <b>graphology</b> <b>MultiDirectedGraph</b> from <b>lib/rag/graph</b><br/>(typos and aliases match, different words do not)"]
     Retrieve --> ReadChunks["<b>readChunks()</b><br/><b>lib/rag/vector</b><br/>reads <b>data/vectors/chunks.json</b>"]
     ReadChunks --> Dense["Dense ranker"]
     ReadChunks --> Sparse["Sparse ranker"]
@@ -59,8 +60,8 @@ flowchart TD
     Top20 --> Rrf
     Rrf --> TopK["sort by fused score descending<br/><b>.slice(0, k = 5)</b><br/>map position to <b>chunks[position]</b>"]
 
-    TopK --> Answer["Answer generation<br/><b>answerFromChunks(query, chunks)</b>"]
-    GraphMatch --> Answer
+    TopK --> Answer["Answer generation<br/><b>answerFromChunks(query, chunks)</b><br/><b>app/api/search/route.ts</b>"]
+    FilterNodes --> Answer
     Answer --> Llm["<b>openai</b> SDK: <b>chat.completions.create</b><br/>model <b>gpt-4o-mini</b>, <b>temperature</b> 0<br/>system: one short sentence, only from the excerpts,<br/>otherwise exactly &quot;No article states ...&quot;<br/>user: <b>Excerpts:</b> one bullet per chunk, then <b>Question:</b>"]
     Llm -->|"<b>{ answer }</b>"| Shown["👤<br/><b>Analyst</b><br/>reads the answer"]
 ``` 

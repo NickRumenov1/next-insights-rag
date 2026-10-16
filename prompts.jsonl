@@ -97,3 +97,11 @@
 {"date": "16.10 12:01", "model_id": "claude-sonnet-5-5", "prompt": "remove the box for \"two rankers\" so from \"readChunks\" split both \"dense\" & \"sparse\" rankers"}
 {"date": "16.10 12:02", "model_id": "claude-sonnet-5-5", "prompt": "put the MultiDirectedGraph more on the right and once having more space make Sparse ranke in same line as dense ranker"}
 {"date": "16.10 12:06", "model_id": "claude-sonnet-5-5", "prompt": "Remove Promise.all from indexing"}
+{"date": "16.10 12:11", "model_id": "claude-sonnet-5-5", "prompt": "Plan implementation for matching the entities in the graphological search node"}
+{"date": "16.10 12:14", "model_id": "claude-sonnet-5-5", "prompt": "Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.\n\nTo-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos."}
+{"date": "16.10 12:30", "model_id": "claude-sonnet-5-5", "prompt": "move matchEntities function in the route.ts search file"}
+{"date": "16.10 15:21", "model_id": "claude-sonnet-5-5", "prompt": "@Architecture.md Split matchEntities stage on small steps with the gpt requests especially, also update the new file paths for it after the refactoring of the functions"}
+{"date": "16.10 15:22", "model_id": "claude-sonnet-5-5", "prompt": "keep it in route.ts, ignore the architecture, change the architecture based on the current files and places"}
+{"date": "16.10 15:26", "model_id": "claude-sonnet-5-5", "prompt": "askJson is a strange function name, offer other names"}
+{"date": "16.10 15:31", "model_id": "claude-sonnet-5-5", "prompt": "promptForJson definition with the dashes line, add this information in the exctractQueryNames and mapNamesToNodes\nEven if it repeatable information and delete node for promptForJson after that"}
+{"date": "16.10 15:33", "model_id": "claude-sonnet-5-5", "prompt": "in exctractQuery box and mapNamesToNodes we dont need to know that there is a promptForJson fucntion that calls the OpenAI api, put only information like sdk: chat.completions.create, model, temperature and what it does"}

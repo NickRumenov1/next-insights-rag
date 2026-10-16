@@ -1,3 +1,4 @@
+import { graph } from "@/lib/rag/graph";
 import { bm25Rank, embedChunks, INDEX_FILE, readChunks } from "@/lib/rag/vector";
 import type { Chunk } from "@/app/api/articles/[articleId]/process/route";
 import { existsSync } from "node:fs";
@@ -11,7 +12,8 @@ export async function POST(request: Request) {
       return Response.json({ error: "Query is required." }, { status: 400 });
     }
 
-    const chunks = await searchVectors(query);
+    const [chunks, entities] = await Promise.all([searchVectors(query), matchEntities(query)]);
+    console.log(`[graph] matched entities for "${query}": ${JSON.stringify(entities)}`);
     return Response.json({ answer: await answerFromChunks(query, chunks) });
   } catch (error) {
     console.error(error);
@@ -41,6 +43,49 @@ async function searchVectors(query: string, k = 5): Promise<Chunk[]> {
     .sort((a, b) => b[1] - a[1])
     .slice(0, k)
     .map(([position]) => chunks[position]);
+}
+
+/** Maps the named entities a question mentions onto existing graph node ids. */
+async function matchEntities(query: string): Promise<string[]> {
+  if (graph.order === 0) return [];
+
+  const names = await extractQueryNames(query);
+  if (names.length === 0) return [];
+
+  const entities = await mapNamesToNodes(names);
+  return [...new Set(entities)].filter((name) => graph.hasNode(name));
+}
+
+/** GPT step 1: names alone, so the node list can't pull in entities the question never wrote. */
+async function extractQueryNames(query: string): Promise<string[]> {
+  const { names = [] } = await promptForJson(
+    `List the proper names of companies, people, products, technologies and papers written in the question, exactly as spelled. Skip generic words ("company", "who", "AI startups"). Reply with JSON: {"names": []}. Example: "Who acquired Salesforce?" -> {"names": ["Salesforce"]}.`,
+    query,
+  );
+  return names;
+}
+
+/** GPT step 2: maps each extracted name to an existing graph node. */
+async function mapNamesToNodes(names: string[]): Promise<string[]> {
+  const { entities = [] } = await promptForJson(
+    `Map each given name to a graph node. Match the same entity only: an alias, a legal suffix, or a typo of that exact name ("Slak" -> "Slack"). A different real word is not a match ("Stack" is not "Slack"). Skip names with no node. Reply with JSON: {"entities": ["<exact node name>"]}.`,
+    `Nodes:\n${graph.nodes().join("\n")}\n\nNames: ${JSON.stringify(names)}`,
+  );
+  return entities;
+}
+
+async function promptForJson(system: string, user: string) {
+  const openai = new OpenAI();
+  const res = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    temperature: 0,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+  });
+  return JSON.parse(res.choices[0]?.message.content ?? "{}") as Record<string, string[]>;
 }
 
 async function answerFromChunks(query: string, chunks: Chunk[]): Promise<string> {

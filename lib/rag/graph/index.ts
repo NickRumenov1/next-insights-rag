@@ -29,7 +29,7 @@ type Fact = {
 
 // Held on globalThis so every route shares one graph across Next.js dev reloads.
 const globalForGraph = globalThis as unknown as { knowledgeGraph?: MultiDirectedGraph };
-const graph = (globalForGraph.knowledgeGraph ??= new MultiDirectedGraph());
+export const graph = (globalForGraph.knowledgeGraph ??= new MultiDirectedGraph());
 
 export async function extractFacts(text: string): Promise<Fact[]> {
   const openai = new OpenAI(); // Created lazily so a missing OPENAI_API_KEY doesn't fail at import time.
