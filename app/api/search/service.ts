@@ -1,17 +1,9 @@
-import { HierarchicalNSW } from "hnswlib-node";
-import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import OpenAI from "openai";
 import { ARTICLES_DIR } from "../articles/service";
-import {
-  embedChunks,
-  graph,
-  INDEX_FILE,
-  readChunks,
-  vocabulary,
-  type Chunk,
-} from "../articles/[articleId]/process/service";
+import { matchEntities, searchGraph } from "./graph-search";
+import { searchVectors } from "./vector-search";
 
 /** One normalized piece of support: a graph fact rendered as a sentence, or a vector chunk. */
 type Evidence = { id: string; articleId: string; source: "Graph" | "RAG"; text: string };
@@ -26,113 +18,7 @@ export async function search(query: string) {
   return answerFromEvidence(query, evidence);
 }
 
-/** Hybrid search: dense (hnsw) + sparse (BM25), fused with Reciprocal Rank Fusion. */
-async function searchVectors(query: string, k = 5): Promise<Chunk[]> {
-  const chunks = await readChunks();
-  if (chunks.length === 0 || !existsSync(INDEX_FILE)) return [];
-
-  const index = new HierarchicalNSW("cosine", 1536);
-  index.readIndexSync(INDEX_FILE);
-  const [embedding] = await embedChunks([{ id: "query", articleId: "", index: 0, text: query }]);
-  const dense = index.searchKnn(embedding, Math.min(20, index.getCurrentCount())).neighbors;
-  const sparse = bm25Rank(query, chunks).slice(0, 20);
-
-  const fused = new Map<number, number>();
-  for (const ranking of [dense, sparse]) {
-    ranking.forEach((position, rank) => {
-      fused.set(position, (fused.get(position) ?? 0) + 1 / (60 + rank + 1));
-    });
-  }
-
-  return [...fused.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, k)
-    .map(([position]) => chunks[position]);
-}
-
-const tokenize = (text: string): string[] => text.toLowerCase().match(/[a-z0-9]+/g) ?? [];
-
-/** BM25 (k1 = 1.5, b = 0.75). Returns chunk positions ranked best-first, matches only. */
-function bm25Rank(query: string, chunks: Chunk[]): number[] {
-  const docs = chunks.map((chunk) => tokenize(chunk.text));
-  const avgLength = docs.reduce((sum, doc) => sum + doc.length, 0) / docs.length;
-  const terms = new Set(tokenize(query));
-
-  return docs
-    .map((doc, position) => {
-      let score = 0;
-      for (const term of terms) {
-        const tf = doc.filter((word) => word === term).length;
-        if (!tf) continue;
-        const df = docs.filter((other) => other.includes(term)).length;
-        const idf = Math.log(1 + (docs.length - df + 0.5) / (df + 0.5));
-        score += (idf * tf * 2.5) / (tf + 1.5 * (0.25 + (0.75 * doc.length) / avgLength));
-      }
-      return { position, score };
-    })
-    .filter((item) => item.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .map((item) => item.position);
-}
-
-/**
- * Facts as plain sentences, so the reader sees direction, negation, date and sector.
- * With entities: every edge touching them (either direction). Without: every edge with one of the predicates.
- * A non-empty predicates list narrows both.
- */
-function searchGraph(entities: string[], predicates: string[], limit = 30): { articleId: string; text: string }[] {
-  const wanted = new Set(predicates);
-  if (entities.length === 0 && wanted.size === 0) return [];
-
-  const edges = entities.length ? new Set(entities.flatMap((entity) => graph.edges(entity))) : graph.edges();
-  const label = (node: string) => {
-    const sector = graph.getNodeAttribute(node, "sector");
-    return sector ? `${node} (${sector})` : node;
-  };
-
-  return [...edges]
-    .filter((edge) => wanted.size === 0 || wanted.has(graph.getEdgeAttribute(edge, "predicate")))
-    .slice(0, limit)
-    .map((edge) => {
-      const { predicate, articleId, date, negated, metric, value, unit, period } = graph.getEdgeAttributes(edge);
-      const [subject, object] = [graph.source(edge), graph.target(edge)];
-      const what = value
-        ? [metric, value, unit, period && `in ${period}`].filter(Boolean).join(" ")
-        : label(object);
-      const text = `${label(subject)} ${String(predicate).replaceAll("_", " ")} ${what}${date ? `, ${date}` : ""}`;
-      return { articleId, text: negated ? `NOT TRUE (the article denies it): ${text}` : text };
-    });
-}
-
-/** Maps the question onto graph node ids (named entities) and graph predicates (relations it asks about). */
-async function matchEntities(query: string): Promise<{ entities: string[]; predicates: string[] }> {
-  if (graph.order === 0) return { entities: [], predicates: [] };
-
-  const { names, predicates } = await extractQuery(query);
-  const entities = names.length === 0 ? [] : await mapNamesToNodes(names);
-  return { entities: [...new Set(entities)].filter((name) => graph.hasNode(name)), predicates };
-}
-
-/** GPT step 1: names alone, so the node list can't pull in entities the question never wrote. Predicates come from the graph's own vocabulary. */
-async function extractQuery(query: string): Promise<{ names: string[]; predicates: string[] }> {
-  const known = vocabulary().predicates;
-  const { names = [], predicates = [] } = await promptForJson(
-    `List the proper names of entities (${vocabulary().entityTypes.join(", ")}) written in the question, exactly as spelled. Skip generic words ("company", "who", "AI startups"). Also list the relations the question asks about, using only these predicates: ${known.join(", ")} (bought -> acquired). Use [] when none fits. Reply with JSON: {"names": [], "predicates": []}. Example: "Who acquired Salesforce?" -> {"names": ["Salesforce"], "predicates": ["acquired"]}.`,
-    query,
-  );
-  return { names, predicates: predicates.filter((predicate) => known.includes(predicate)) };
-}
-
-/** GPT step 2: maps each extracted name to an existing graph node. */
-async function mapNamesToNodes(names: string[]): Promise<string[]> {
-  const { entities = [] } = await promptForJson(
-    `Map each given name to a graph node. Match the same entity only: an alias, a legal suffix, or a typo of that exact name ("Slak" -> "Slack"). A different real word is not a match ("Stack" is not "Slack"). Skip names with no node. Reply with JSON: {"entities": ["<exact node name>"]}.`,
-    `Nodes:\n${graph.nodes().join("\n")}\n\nNames: ${JSON.stringify(names)}`,
-  );
-  return entities;
-}
-
-async function promptForJson<T = Record<string, string[]>>(system: string, user: string) {
+export async function promptForJson<T = Record<string, string[]>>(system: string, user: string) {
   const openai = new OpenAI();
   const res = await openai.chat.completions.create({
     model: "gpt-4o-mini",

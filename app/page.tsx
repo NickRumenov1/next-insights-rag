@@ -154,9 +154,12 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-1 bg-zinc-950 font-sans text-zinc-100">
-      <main className="flex w-full flex-col gap-10 px-8 py-10 sm:px-12 sm:py-14 md:flex-row md:items-start md:justify-between">
-        <div className="flex w-full max-w-xl flex-col gap-4">
+    <div className="flex min-h-screen flex-1 bg-zinc-950 font-sans text-zinc-100">
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 sm:px-10 sm:py-12">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:items-start">
+
+        {/* SECTION 1: Search Form & Answer (Top Left) */}
+        <div className="flex w-full flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-sm">
           <form className="flex items-center gap-3" onSubmit={onSearch}>
             <input
               id="query"
@@ -164,101 +167,109 @@ export default function Home() {
               value={query}
               placeholder="Enter your query"
               onChange={(event) => setQuery(event.target.value)}
-              className="h-16 min-w-0 flex-1 rounded-lg border border-zinc-600 bg-zinc-900 px-4 text-lg text-zinc-50 outline-none placeholder:text-zinc-400 focus:border-zinc-300"
+              className="h-14 min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-4 text-base text-zinc-50 outline-none placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400"
             />
             <button
               type="submit"
               style={{ cursor: "pointer" }}
               disabled={query.trim().length === 0}
-              className="h-16 shrink-0 rounded-lg bg-zinc-100 px-5 text-sm font-medium text-zinc-950 hover:bg-white disabled:opacity-60"
+              className="h-14 shrink-0 rounded-lg bg-zinc-100 px-6 text-sm font-semibold text-zinc-950 hover:bg-white disabled:opacity-60"
             >
               Submit
             </button>
           </form>
           <section
             aria-label="Answer"
-            className="flex min-h-64 w-full flex-col rounded-lg border border-zinc-600 bg-zinc-900 p-4"
+            className="flex min-h-64 w-full flex-col rounded-lg border border-zinc-800 bg-zinc-950/80 p-5"
           >
             {answer ? (
               <p className="whitespace-pre-wrap text-base leading-7 text-zinc-100">{answer}</p>
             ) : null}
             {sources.length > 0 ? (
-              <p className="mt-auto pt-4 text-sm text-zinc-400">
+              <p className="mt-auto pt-4 text-sm text-zinc-400 border-t border-zinc-800/80">
                 {sources.map((item) => `${item.name} [${item.source}]`).join(", ")}
               </p>
             ) : null}
           </section>
         </div>
 
-        <div className="flex w-full max-w-xl flex-col gap-4 md:w-80 md:shrink-0">
-        <form
-          aria-label="Add article"
-          className="flex w-full flex-col gap-4"
-          onSubmit={(event) => event.preventDefault()}
-        >
-          <label
-            className={`inline-flex h-12 items-center justify-center rounded-lg bg-zinc-100 px-5 text-sm font-medium text-zinc-950 hover:bg-white ${reading ? "pointer-events-none opacity-60" : "cursor-pointer"}`}
+        {/* SECTION 2: Document / Text Upload Form (Top Right) */}
+        <div className="flex w-full flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-sm">
+          <form
+            aria-label="Add article"
+            className="flex w-full flex-col gap-4"
+            onSubmit={(event) => event.preventDefault()}
           >
-            {reading ? "Reading…" : "Upload"}
-            <input
-              type="file"
-              accept=".txt,.pdf,text/plain,application/pdf"
-              className="sr-only"
-              disabled={reading}
-              onChange={onFileChange}
+            <label
+              className={`inline-flex h-12 items-center justify-center rounded-lg bg-zinc-100 px-5 text-sm font-semibold text-zinc-950 hover:bg-white ${reading ? "pointer-events-none opacity-60" : "cursor-pointer"}`}
+            >
+              {reading ? "Reading…" : "Upload"}
+              <input
+                type="file"
+                accept=".txt,.pdf,text/plain,application/pdf"
+                className="sr-only"
+                disabled={reading}
+                onChange={onFileChange}
+              />
+            </label>
+            <p className="text-xs text-zinc-400 text-center">Supports .txt and .pdf files only</p>
+            {error ? <p className="text-sm text-red-400 text-center">{error}</p> : null}
+            <div className="flex items-center gap-3 text-xs text-zinc-500 my-1">
+              <span className="h-px flex-1 bg-zinc-800" />
+              <span>OR</span>
+              <span className="h-px flex-1 bg-zinc-800" />
+            </div>
+          </form>
+          <form className="flex w-full flex-col gap-3" onSubmit={onSaveText}>
+            <textarea
+              value={articleText}
+              placeholder="Article text"
+              rows={5}
+              onChange={(event) => setArticleText(event.target.value)}
+              className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-50 outline-none placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400"
             />
-          </label>
-          <p className="text-sm text-zinc-400">* Supports .txt and .pdf files only</p>
-          {error ? <p className="text-sm text-red-300">{error}</p> : null}
-          <div className="flex items-center gap-3 text-sm text-zinc-400">
-            <span className="h-px flex-1 bg-zinc-700" />
-            <span>Or</span>
-            <span className="h-px flex-1 bg-zinc-700" />
-          </div>
-        </form>
-        <form className="flex w-full flex-col gap-3" onSubmit={onSaveText}>
-          <textarea
-            value={articleText}
-            placeholder="Article text"
-            rows={6}
-            onChange={(event) => setArticleText(event.target.value)}
-            className="rounded-lg border border-zinc-600 bg-zinc-900 px-4 py-3 text-sm text-zinc-50 outline-none placeholder:text-zinc-400 focus:border-zinc-300"
-          />
-          <button
-            type="submit"
-            style={{ cursor: "pointer" }}
-            disabled={saving || articleText.trim().length === 0}
-            className="h-12 rounded-lg bg-zinc-100 px-5 text-sm font-medium text-zinc-950 hover:bg-white disabled:opacity-60"
-          >
-            {saving ? "Saving…" : "Save"}
-          </button>
-        </form>
-        <hr />
+            <button
+              type="submit"
+              style={{ cursor: "pointer" }}
+              disabled={saving || articleText.trim().length === 0}
+              className="h-11 rounded-lg bg-zinc-100 px-5 text-sm font-semibold text-zinc-950 hover:bg-white disabled:opacity-60"
+            >
+              {saving ? "Saving…" : "Save"}
+            </button>
+          </form>
+        </div>
+
+      </div>
+      <div className="flex w-full flex-col gap-6 rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-sm">
+      <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+        <h2 className="text-xl font-bold text-zinc-100">Uploaded articles</h2>
         {articles.length > 0 ? (
           <button
             type="button"
             onClick={onDeleteArticles}
             style={{ cursor: "pointer" }}
-            className="h-12 rounded-lg border border-red-400 px-5 text-sm font-medium text-red-300 hover:bg-red-950"
+            className="h-10 rounded-lg border border-red-500/50 bg-red-950/30 px-4 text-xs font-semibold text-red-300 hover:bg-red-900/50 hover:border-red-400 transition"
           >
-            Delete data (articles, vectors & graph)
+            Reset data (articles, vectors & graph)
           </button>
         ) : null}
-        {articles.length > 0 ? (
-          <ul aria-label="Articles" className="flex flex-col gap-2">
-            {articles.map((item) => (
-              <li
-                key={item.id}
-                className="flex flex-col gap-2 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-3"
-              >
-                <p className="text-xs font-medium text-zinc-400">{item.name}</p>
-                <p className="whitespace-pre-wrap text-sm leading-6 text-zinc-100">{item.text}</p>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        </div>
-      </main>
+      </div>
+
+      {articles.length > 0 ? (
+        <ul aria-label="Articles" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {articles.map((item) => (
+            <li
+              key={item.id}
+              className="flex flex-col gap-2 rounded-lg border border-zinc-800 bg-zinc-950/90 p-4"
+            >
+              <p className="text-xs font-semibold text-zinc-400 border-b border-zinc-800/60 pb-1.5">{item.name}</p>
+              <p className="whitespace-pre-wrap text-sm leading-6 text-zinc-200">{item.text}</p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
+    </main>
+  </div>
   );
 }
