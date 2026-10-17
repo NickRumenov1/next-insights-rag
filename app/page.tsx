@@ -10,6 +10,22 @@ type ArticleItem = {
   text: string;
 };
 
+const browser = typeof window === "undefined" ? null : (window as Window & { __printApiLogs?: boolean });
+if (browser && !browser.__printApiLogs) {
+  browser.__printApiLogs = true;
+  const originalFetch = browser.fetch.bind(browser);
+  browser.fetch = async (input, init) => {
+    const response = await originalFetch(input, init);
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    if (!url.includes("/api")) return response;
+    const payload = (await response.clone().json().catch(() => null)) as { logs?: unknown } | null;
+    if (Array.isArray(payload?.logs)) {
+      for (const line of payload.logs) console.log(line);
+    }
+    return response;
+  };
+}
+
 export default function Home() {
   const [query, setQuery] = useState("");
   const [answer, setAnswer] = useState("");
@@ -97,8 +113,8 @@ export default function Home() {
         );
 
         const processed = await fetch(`/api/articles/${uploaded.id}/process`, { method: "POST" });
+        const failure = (await processed.json().catch(() => null)) as { error?: string } | null;
         if (!processed.ok) {
-          const failure = (await processed.json().catch(() => null)) as { error?: string } | null;
           setError(failure?.error ?? "Could not process that article.");
         }
       }
@@ -130,8 +146,8 @@ export default function Home() {
       setArticleText("");
 
       const processed = await fetch(`/api/articles/${saved.id}/process`, { method: "POST" });
+      const failure = (await processed.json().catch(() => null)) as { error?: string } | null;
       if (!processed.ok) {
-        const failure = (await processed.json().catch(() => null)) as { error?: string } | null;
         setError(failure?.error ?? "Could not process that article.");
       }
     } catch {
