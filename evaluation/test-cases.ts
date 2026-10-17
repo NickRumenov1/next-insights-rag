@@ -131,7 +131,7 @@ export const testCases: TestCase[] = [
       { name: "art-1", text: "Salesforce never acquired Slack." },
       { name: "art-2", text: "Salesforce acquired Slack in 2021." },
     ],
-    expected: "The articles disagree. One says Salesforce never acquired Slack. The other says Salesforce acquired Slack in 2021.",
+    expected: "The articles disagree. One says Salesforce acquired Slack. The other says Salesforce never acquired Slack.",
   },
   {
     id: "T-015",

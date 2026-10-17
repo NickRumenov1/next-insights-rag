@@ -53,8 +53,7 @@ async function answerFromEvidence(query: string, evidence: Evidence[]) {
     - Respect direction: "Who acquired Salesforce?" is not answered by "Salesforce acquired Slack".
     - A question with several conditions needs one entity that meets every condition, each backed by evidence about that same entity. Evidence about different entities never combines. A category such as "database companies" is met by the entity's sector.
     - Evidence that merely mentions the entities without stating the answer supports nothing.
-    - "answer": a short sentence, e.g. "Salesforce acquired Slack in 2021." Use short entity names. For several answers list them all.
-    - When the evidence does not state the answer: verdict "none", evidenceIds [], answer exactly "No article states <the answer to the question>." using the question's own wording and names (e.g. "No article states which company acquired Stack.").
+    - "answer": a short sentence, e.g. "Salesforce acquired Slack in 2021." Use short entity names. For several answers list them all.    - When the evidence does not state the answer: verdict "none", evidenceIds [], answer exactly "No article states <the answer to the question>." using the question's own wording and names (e.g. "No article states which company acquired Stack.").
     - evidenceIds lists only the evidence the answer actually rests on.`,
     `Evidence:\n${evidence.map((item) => `${item.id} [${item.source}]: ${item.text}`).join("\n")}\n\nQuestion: ${query}`,
   );
