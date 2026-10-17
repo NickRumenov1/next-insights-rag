@@ -17,7 +17,7 @@ npm run dev
 With the app running locally, run the evaluation test suite:
 
 ```bash
-node --env-file=.env.local evaluation/test-runner.ts
+npm run evaluation
 ```
     
 
@@ -59,7 +59,7 @@ flowchart TD
     end
 
     subgraph Knowledge Graph Pipeline
-        GraphPipeline --> Facts["Extract facts & triples<br/><i>(gpt-4o-mini)</i>"]
+        GraphPipeline --> Facts["Extract facts & triples<br/><i>(gpt-6.1-sol)</i>"]
         Facts --> SaveGraph["Save entities & relationships<br/><i>(In-memory MultiDirectedGraph)</i>"]
     end
 ```
@@ -89,7 +89,7 @@ flowchart TD
     MatchGraph --> Merge["Merge Graph Facts + Text Chunks"]
     Combine --> Merge
 
-    Merge --> LLM["LLM Answer Generator<br/><i>(gpt-4o-mini)</i>"]
+    Merge --> LLM["LLM Answer Generator<br/><i>(gpt-6.1-sol)</i>"]
     LLM --> Verify["Verify Sources & Citations"]
     Verify --> Answer["👤 Response returned with sources"]
 ```

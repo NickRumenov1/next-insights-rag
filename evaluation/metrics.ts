@@ -8,8 +8,7 @@ export async function scoreCase(test: TestCase, answer: string): Promise<string[
 
 async function sameMeaning(got: string, expected: string): Promise<boolean> {
   const res = await new OpenAI().chat.completions.create({
-    model: "gpt-4o-mini",
-    temperature: 0,
+    model: "gpt-6.1-sol",
     messages: [
       {
         role: "system",

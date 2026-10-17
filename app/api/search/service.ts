@@ -28,8 +28,7 @@ export async function search(query: string) {
 export async function promptForJson<T = Record<string, string[]>>(system: string, user: string) {
   const openai = new OpenAI();
   const res = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    temperature: 0,
+    model: "gpt-6.1-sol",
     response_format: { type: "json_object" },
     messages: [
       { role: "system", content: system },
@@ -45,15 +44,16 @@ const NO_ANSWER = "No article states the answer to the question.";
 async function answerFromEvidence(query: string, evidence: Evidence[], entities: string[]) {
   const verdict = await promptForJson<{ verdict?: string; answer?: string; evidenceIds?: string[] }>(
     `Answer the question using only the numbered evidence. Evidence is a graph fact ([Graph], a sentence; a word in parentheses after an entity is its sector) or an article excerpt ([RAG]).
-    Reply with JSON: {"verdict": "answer" | "conflict" | "none", "answer": "<one short sentence>", "evidenceIds": ["E1"]}.
+    Reply with JSON: {"verdict": "answer" | "conflict" | "none", "answer": "<one short sentence, or the conflict format below>", "evidenceIds": ["E1"]}.
     Rules:
     - Use only what the evidence explicitly states. Hopes, speculation and "might someday" support nothing.
-    - A fact marked NOT TRUE, or an article saying something did not happen, never supports the answer. If one evidence denies a fact and another affirms it, or two give different values for the same fact, verdict "conflict": state that the articles disagree and what each says.
+    - A fact marked NOT TRUE, or an article saying something did not happen, never supports the answer. If one evidence denies a fact and another affirms it, or two give different values for the same fact, verdict "conflict". Never merge conflicting claims into one sentence ("5% and 7%" is wrong). A conflict answer must start with "The articles disagree. One says <first claim>. The other says <second claim>." keeping each claim as stated, with its details, e.g. "The articles disagree. One says Acme grew 5% in 2024. The other says Acme grew 7% in 2024."
     - The relation must be the one asked: acquired is not invested in, announced is not completed, a price is not a date, a year is not a month.
-    - Respect direction: "Who acquired Salesforce?" is not answered by "Salesforce acquired Slack".
-    - A question with several conditions needs one entity that meets every condition, each backed by evidence about that same entity. Evidence about different entities never combines. A category such as "database companies" is met by the entity's sector.
+    - Respect direction: "Who acquired Salesforce?" is not answered by "Salesforce acquired Slack", but "Which companies did Salesforce acquire?" is answered by every evidence of the form "Salesforce acquired <company>": list all of them.
+    - Only for a question with several conditions: one entity must meet every condition, each backed by evidence about that same entity, and evidence about different entities never combines. Every entity that meets all conditions is an answer: list all of them. This does not apply to a question asking for a list; there, every matching evidence is one more item of the answer. A category such as "database companies" is met by the entity's sector.
     - Evidence that merely mentions the entities without stating the answer supports nothing.
-    - "answer": a short sentence, e.g. "Salesforce acquired Slack in 2021." Use short entity names. For several answers list them all.
+    - A date, place or figure belongs to a fact only if that same evidence names the fact's entities. If a question asks for several things (e.g. "who, and when") and one part has no such evidence, answer the supported part and say the articles don't say the other part, mentioning any evidence that lacks the entity names (e.g. "Acme bought Beta, but the articles don't say when. One mentions a deal in 2019 without naming the companies.").
+    - "answer": a short sentence that gives only what the question asks (a date only if it asks when), e.g. "Salesforce acquired Slack." Use short entity names, and name entities as the evidence does ("AI startup Voyage", never "an AI startup"). For several answers list them all.
     - "Matched entities" are the question's entities resolved to graph names (a misspelling is already corrected). Treat them as the entities the question asks about.
     - When the evidence does not state the answer: verdict "none", evidenceIds [], answer exactly "No article states <the answer to the question>." using the question's own wording and names (e.g. "No article states which company acquired Stack.").
     - evidenceIds lists only the evidence the answer actually rests on.`,

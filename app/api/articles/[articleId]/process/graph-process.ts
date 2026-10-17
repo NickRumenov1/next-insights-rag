@@ -58,8 +58,7 @@ async function extractFacts(text: string): Promise<Fact[]> {
   const openai = new OpenAI(); // Created lazily so a missing OPENAI_API_KEY doesn't fail at import time.
   const { entityTypes, predicates } = vocabulary();
   const res = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    temperature: 0,
+    model: "gpt-6.1-sol",
     response_format: { type: "json_object" },
     messages: [
       {

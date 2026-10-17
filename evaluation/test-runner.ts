@@ -57,7 +57,8 @@ const summary = `${passed}/${cases.length} passed`;
 console.log(`-----\n${passed === cases.length ? green(summary) : red(summary)}`);
 
 await mkdir(RESULTS_DIR, { recursive: true });
-const file = path.join(RESULTS_DIR.pathname, `${new Date().toISOString().replace(/[:.]/g, "-")}.json`);
+const date = new Date().toLocaleString("en-GB").replace(/[/:,\s]/g, "-");
+const file = path.join(RESULTS_DIR.pathname, `${date}.json`);
 await writeFile(file, JSON.stringify({ passed, total: cases.length, results }, null, 2));
 console.log(`results: ${file}`);
 

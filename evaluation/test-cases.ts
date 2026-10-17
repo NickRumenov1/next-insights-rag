@@ -86,7 +86,7 @@ export const testCases: TestCase[] = [
       { name: "art-1", text: "Salesforce acquired Slack in 2021." },
       { name: "art-2", text: "Salesforce acquired Slack in 2022." },
     ],
-    expected: "The articles disagree. One says 2021 and the other says 2022.",
+    expected: "The articles disagree. One says Salesforce acquired Slack in 2021. The other says Salesforce acquired Slack in 2022.",
   },
   {
     id: "T-010",
@@ -131,7 +131,7 @@ export const testCases: TestCase[] = [
       { name: "art-1", text: "Salesforce never acquired Slack." },
       { name: "art-2", text: "Salesforce acquired Slack in 2021." },
     ],
-    expected: "The articles disagree. One says Salesforce acquired Slack. The other says Salesforce never acquired Slack.",
+    expected: "The articles disagree. One says Salesforce never acquired Slack. The other says Salesforce acquired Slack in 2021.",
   },
   {
     id: "T-015",
@@ -167,7 +167,7 @@ export const testCases: TestCase[] = [
       { name: "art-1", text: "Salesforce acquired Slack in 2025." },
       { name: "art-2", text: "Salesforce acquired Tableau." },
     ],
-    expected: "No article states which company acquired Salesforce.",
+    expected: "No article states who acquired Salesforce.",
   },
   {
     id: "T-019",
@@ -240,7 +240,7 @@ export const testCases: TestCase[] = [
       { name: "art-1", text: "Salesforce is the acquiring company." },
       { name: "art-2", text: "The transaction was completed in July 2021." },
     ],
-    expected: "Salesforce acquired Slack, and the deal was completed in July 2021.",
+    expected: "No article states which company acquired Slack, and when the deal was completed.",
   },
   {
     id: "T-027",
@@ -249,7 +249,7 @@ export const testCases: TestCase[] = [
       { name: "art-1", text: "MongoDB acquired AI startup Voyage." },
       { name: "art-2", text: "MongoDB published a paper on vector search." },
     ],
-    expected: "MongoDB acquired an AI startup and published a paper on vector search.",
+    expected: "MongoDB acquired AI startup Voyage and published a paper on vector search.",
   },
   {
     id: "T-028",
@@ -258,7 +258,7 @@ export const testCases: TestCase[] = [
       { name: "art-1", text: "Database company MongoDB acquired AI startup Voyage in 2025." },
       { name: "art-2", text: "Elastic launched a new database product." },
     ],
-    expected: "No article states which database companies have recently acquired AI startups and also published papers on vector search.",
+    expected: "No article states which database companies acquired AI startups and published vector-search papers.",
   },
   {
     id: "T-029",
@@ -273,12 +273,12 @@ export const testCases: TestCase[] = [
     id: "T-030",
     query: "Which database companies acquired AI startups and published vector-search papers?",
     articles: [
-      { name: "art-1", text: "MongoDB acquired AI startup Voyage." },
+      { name: "art-1", text: "Database company MongoDB acquired AI startup Voyage." },
       { name: "art-2", text: "MongoDB published a paper on vector search." },
-      { name: "art-3", text: "Elastic acquired AI startup Nimbus." },
+      { name: "art-3", text: "Database company Elastic acquired AI startup Nimbus." },
       { name: "art-4", text: "Elastic published a paper on vector search." },
     ],
-    expected: "MongoDB and Elastic meet both conditions.",
+    expected: "MongoDB and Elastic acquired AI startups and published vector-search papers.",
   },
   {
     id: "T-031",

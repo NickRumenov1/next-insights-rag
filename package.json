@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "evaluation": "node --env-file=.env.local evaluation/test-runner.ts"
   },
   "dependencies": {
     "@langchain/textsplitters": "^1.0.2",
