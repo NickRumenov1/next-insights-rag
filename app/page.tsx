@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+type SourceItem = { articleId: string; name: string; source: "Graph" | "RAG" };
+
 type ArticleItem = {
   id: string;
   name: string;
@@ -11,6 +13,7 @@ type ArticleItem = {
 export default function Home() {
   const [query, setQuery] = useState("");
   const [answer, setAnswer] = useState("");
+  const [sources, setSources] = useState<SourceItem[]>([]);
   const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [reading, setReading] = useState(false);
@@ -44,12 +47,13 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
       });
-      const payload = (await response.json()) as { answer?: string; error?: string };
+      const payload = (await response.json()) as { answer?: string; sources?: SourceItem[]; error?: string };
       if (!response.ok) {
         setError(payload.error ?? "Could not search the articles.");
         return;
       }
       setAnswer(payload.answer ?? "");
+      setSources(payload.sources ?? []);
     } catch {
       setError("Could not search the articles.");
     }
@@ -179,6 +183,11 @@ export default function Home() {
           >
             {answer ? (
               <p className="whitespace-pre-wrap text-base leading-7 text-zinc-100">{answer}</p>
+            ) : null}
+            {sources.length > 0 ? (
+              <p className="mt-auto pt-4 text-sm text-zinc-400">
+                {sources.map((item) => `${item.name} [${item.source}]`).join(", ")}
+              </p>
             ) : null}
           </section>
         </div>
