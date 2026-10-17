@@ -22,7 +22,7 @@ export async function search(query: string) {
     ...chunks.map(({ articleId, text }) => ({ articleId, text, source: "RAG" as const })),
   ].map((item, position) => ({ ...item, id: `E${position + 1}` }));
 
-  return answerFromEvidence(query, evidence);
+  return answerFromEvidence(query, evidence, entities);
 }
 
 export async function promptForJson<T = Record<string, string[]>>(system: string, user: string) {
@@ -42,7 +42,7 @@ export async function promptForJson<T = Record<string, string[]>>(system: string
 const NO_ANSWER = "No article states the answer to the question.";
 
 /** One GPT call judges the merged evidence; code then keeps only citations that exist and builds the sources. */
-async function answerFromEvidence(query: string, evidence: Evidence[]) {
+async function answerFromEvidence(query: string, evidence: Evidence[], entities: string[]) {
   const verdict = await promptForJson<{ verdict?: string; answer?: string; evidenceIds?: string[] }>(
     `Answer the question using only the numbered evidence. Evidence is a graph fact ([Graph], a sentence; a word in parentheses after an entity is its sector) or an article excerpt ([RAG]).
     Reply with JSON: {"verdict": "answer" | "conflict" | "none", "answer": "<one short sentence>", "evidenceIds": ["E1"]}.
@@ -53,9 +53,11 @@ async function answerFromEvidence(query: string, evidence: Evidence[]) {
     - Respect direction: "Who acquired Salesforce?" is not answered by "Salesforce acquired Slack".
     - A question with several conditions needs one entity that meets every condition, each backed by evidence about that same entity. Evidence about different entities never combines. A category such as "database companies" is met by the entity's sector.
     - Evidence that merely mentions the entities without stating the answer supports nothing.
-    - "answer": a short sentence, e.g. "Salesforce acquired Slack in 2021." Use short entity names. For several answers list them all.    - When the evidence does not state the answer: verdict "none", evidenceIds [], answer exactly "No article states <the answer to the question>." using the question's own wording and names (e.g. "No article states which company acquired Stack.").
+    - "answer": a short sentence, e.g. "Salesforce acquired Slack in 2021." Use short entity names. For several answers list them all.
+    - "Matched entities" are the question's entities resolved to graph names (a misspelling is already corrected). Treat them as the entities the question asks about.
+    - When the evidence does not state the answer: verdict "none", evidenceIds [], answer exactly "No article states <the answer to the question>." using the question's own wording and names (e.g. "No article states which company acquired Stack.").
     - evidenceIds lists only the evidence the answer actually rests on.`,
-    `Evidence:\n${evidence.map((item) => `${item.id} [${item.source}]: ${item.text}`).join("\n")}\n\nQuestion: ${query}`,
+    `Evidence:\n${evidence.map((item) => `${item.id} [${item.source}]: ${item.text}`).join("\n")}\n\nMatched entities: ${entities.join(", ") || "none"}\n\nQuestion: ${query}`,
   );
 
   const ids = new Set(evidence.map((item) => item.id));
