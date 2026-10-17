@@ -10,6 +10,7 @@ type ArticleItem = {
   text: string;
 };
 
+// added to print api requests in the browser
 const browser = typeof window === "undefined" ? null : (window as Window & { __printApiLogs?: boolean });
 if (browser && !browser.__printApiLogs) {
   browser.__printApiLogs = true;

@@ -1,6 +1,6 @@
 import { HierarchicalNSW } from "hnswlib-node";
 import { existsSync } from "node:fs";
-import { embedChunks, INDEX_FILE, readChunks, type Chunk } from "../articles/[articleId]/process/service";
+import { embedChunks, INDEX_FILE, readChunks, type Chunk } from "../articles/[articleId]/process/vector-process";
 
 /** Hybrid search: dense (hnsw) + sparse (BM25), fused with Reciprocal Rank Fusion. */
 export async function searchVectors(query: string, k = 5): Promise<Chunk[]> {

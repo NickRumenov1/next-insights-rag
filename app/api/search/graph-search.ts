@@ -1,4 +1,4 @@
-import { graph, vocabulary } from "../articles/[articleId]/process/service";
+import { graph, vocabulary } from "../articles/[articleId]/process/graph-process";
 import { promptForJson } from "./service";
 
 /**

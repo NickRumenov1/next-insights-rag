@@ -10,6 +10,13 @@ type Evidence = { id: string; articleId: string; source: "Graph" | "RAG"; text: 
 
 export async function search(query: string) {
   const [chunks, { entities, predicates }] = await Promise.all([searchVectors(query), matchEntities(query)]);
+
+  console.group("Matched on Search");
+  console.table(entities.map((entity) => ({entity})));
+  console.table(predicates.map((p) => ({Predicates: p})));
+  console.table(chunks.map(({id, articleId, index, text}) => ({Chunks: id, articleId, index, text})));
+  console.groupEnd();
+
   const evidence: Evidence[] = [
     ...searchGraph(entities, predicates).map((item) => ({ ...item, source: "Graph" as const })),
     ...chunks.map(({ articleId, text }) => ({ articleId, text, source: "RAG" as const })),
@@ -38,17 +45,17 @@ const NO_ANSWER = "No article states the answer to the question.";
 async function answerFromEvidence(query: string, evidence: Evidence[]) {
   const verdict = await promptForJson<{ verdict?: string; answer?: string; evidenceIds?: string[] }>(
     `Answer the question using only the numbered evidence. Evidence is a graph fact ([Graph], a sentence; a word in parentheses after an entity is its sector) or an article excerpt ([RAG]).
-Reply with JSON: {"verdict": "answer" | "conflict" | "none", "answer": "<one short sentence>", "evidenceIds": ["E1"]}.
-Rules:
-- Use only what the evidence explicitly states. Hopes, speculation and "might someday" support nothing.
-- A fact marked NOT TRUE, or an article saying something did not happen, never supports the answer. If one evidence denies a fact and another affirms it, or two give different values for the same fact, verdict "conflict": state that the articles disagree and what each says.
-- The relation must be the one asked: acquired is not invested in, announced is not completed, a price is not a date, a year is not a month.
-- Respect direction: "Who acquired Salesforce?" is not answered by "Salesforce acquired Slack".
-- A question with several conditions needs one entity that meets every condition, each backed by evidence about that same entity. Evidence about different entities never combines. A category such as "database companies" is met by the entity's sector.
-- Evidence that merely mentions the entities without stating the answer supports nothing.
-- "answer": a short sentence, e.g. "Salesforce acquired Slack in 2021." Use short entity names. For several answers list them all.
-- When the evidence does not state the answer: verdict "none", evidenceIds [], answer exactly "No article states <the answer to the question>." using the question's own wording and names (e.g. "No article states which company acquired Stack.").
-- evidenceIds lists only the evidence the answer actually rests on.`,
+    Reply with JSON: {"verdict": "answer" | "conflict" | "none", "answer": "<one short sentence>", "evidenceIds": ["E1"]}.
+    Rules:
+    - Use only what the evidence explicitly states. Hopes, speculation and "might someday" support nothing.
+    - A fact marked NOT TRUE, or an article saying something did not happen, never supports the answer. If one evidence denies a fact and another affirms it, or two give different values for the same fact, verdict "conflict": state that the articles disagree and what each says.
+    - The relation must be the one asked: acquired is not invested in, announced is not completed, a price is not a date, a year is not a month.
+    - Respect direction: "Who acquired Salesforce?" is not answered by "Salesforce acquired Slack".
+    - A question with several conditions needs one entity that meets every condition, each backed by evidence about that same entity. Evidence about different entities never combines. A category such as "database companies" is met by the entity's sector.
+    - Evidence that merely mentions the entities without stating the answer supports nothing.
+    - "answer": a short sentence, e.g. "Salesforce acquired Slack in 2021." Use short entity names. For several answers list them all.
+    - When the evidence does not state the answer: verdict "none", evidenceIds [], answer exactly "No article states <the answer to the question>." using the question's own wording and names (e.g. "No article states which company acquired Stack.").
+    - evidenceIds lists only the evidence the answer actually rests on.`,
     `Evidence:\n${evidence.map((item) => `${item.id} [${item.source}]: ${item.text}`).join("\n")}\n\nQuestion: ${query}`,
   );
 
