@@ -1,8 +1,7 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
-import { extractText } from "unpdf";
 
-export type ArticleKind = "txt" | "pdf";
+export type ArticleKind = "txt";
 
 export class HttpError extends Error {
   constructor(
@@ -16,25 +15,11 @@ export class HttpError extends Error {
 export const ARTICLES_DIR = path.join(process.cwd(), "data", "articles");
 
 export function articleKind(filename: string): ArticleKind | null {
-  const lower = filename.toLowerCase();
-  if (lower.endsWith(".txt")) return "txt";
-  if (lower.endsWith(".pdf")) return "pdf";
-  return null;
+  return filename.toLowerCase().endsWith(".txt") ? "txt" : null;
 }
 
-export async function textFromBytes(bytes: Buffer, kind: ArticleKind): Promise<string> {
-  if (kind === "txt") return bytes.toString("utf8").replace(/^\uFEFF/, "");
-
-  if (!bytes.subarray(0, 5).toString("utf8").startsWith("%PDF-")) {
-    throw new HttpError("That PDF could not be read.", 422);
-  }
-
-  try {
-    const { text } = await extractText(new Uint8Array(bytes), { mergePages: true });
-    return text;
-  } catch {
-    throw new HttpError("That PDF could not be read.", 422);
-  }
+export function textFromBytes(bytes: Buffer): string {
+  return bytes.toString("utf8").replace(/^\uFEFF/, "");
 }
 
 type StoredArticle = {
@@ -83,7 +68,7 @@ async function readStoredText(filePath: string): Promise<string> {
   const kind = articleKind(filePath);
   if (!kind) return "";
   try {
-    return await textFromBytes(await readFile(filePath), kind);
+    return textFromBytes(await readFile(filePath));
   } catch {
     return "";
   }

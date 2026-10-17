@@ -74,7 +74,7 @@ Rules:
 async function articleName(articleId: string): Promise<string> {
   try {
     const { name } = JSON.parse(await readFile(path.join(ARTICLES_DIR, articleId, "article.json"), "utf8")) as { name: string };
-    return name.replace(/\.(txt|pdf)$/i, "");
+    return name.replace(/\.txt$/i, "");
   } catch {
     return articleId;
   }

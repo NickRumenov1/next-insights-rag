@@ -21,8 +21,8 @@ Knowledge Graph: `graphology`
 ```mermaid
 %%{init: {"themeVariables": {"fontSize": "26"}, "flowchart": {"padding": 28, "nodeSpacing": 60, "rankSpacing": 70}}}%%
 flowchart TD
-    Upload["<b>POST /api/upload</b><br/>.txt or .pdf, saved to <b>data/articles/{id}/</b>"] --> Process["<b>POST /api/articles/{id}/process</b>"]
-    Process --> Extract["Text extraction<br/>.txt: UTF-8 decode (BOM stripped)<br/>.pdf: <b>unpdf</b> <b>extractText</b>"]
+    Upload["<b>POST /api/upload</b><br/>.txt, saved to <b>data/articles/{id}/</b>"] --> Process["<b>POST /api/articles/{id}/process</b>"]
+    Process --> Extract["Text extraction<br/>.txt: UTF-8 decode (BOM stripped)"]
     Extract --> VectorBranch["Vector branch<br/><b>lib/rag/vector</b>"]
     Extract --> GraphBranch["Graph branch<br/><b>lib/rag/graph</b>"]
 

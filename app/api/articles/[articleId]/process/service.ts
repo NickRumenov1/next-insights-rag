@@ -29,7 +29,7 @@ async function readArticle(id: string): Promise<{ id: string; name: string; text
   const kind = sourceName ? articleKind(sourceName) : null;
   if (!sourceName || !kind) throw new HttpError("Article file not found.", 404);
 
-  const text = await textFromBytes(await readFile(path.join(directory, sourceName)), kind);
+  const text = textFromBytes(await readFile(path.join(directory, sourceName)));
   if (!text.trim()) throw new HttpError("The article has no text.", 422);
   return { id, name: meta.name, text };
 }

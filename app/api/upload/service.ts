@@ -6,12 +6,12 @@ export { UploadError };
 
 export async function saveUpload(file: unknown) {
   if (!(file instanceof File)) {
-    throw new UploadError("Choose a .txt or .pdf file.", 400);
+    throw new UploadError("Choose a .txt file.", 400);
   }
 
   const kind = articleKind(file.name);
   if (!kind) {
-    throw new UploadError("Only .txt and .pdf files are supported.", 415);
+    throw new UploadError("Only .txt files are supported.", 415);
   }
   if (file.size === 0) {
     throw new UploadError("The file is empty.", 400);

@@ -16,6 +16,7 @@ export default function Home() {
   const [sources, setSources] = useState<SourceItem[]>([]);
   const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [searching, setSearching] = useState(false);
   const [reading, setReading] = useState(false);
   const [articleText, setArticleText] = useState("");
   const [saving, setSaving] = useState(false);
@@ -39,6 +40,7 @@ export default function Home() {
   async function onSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setSearching(true);
 
     try {
       const response = await fetch("/api/search", {
@@ -55,6 +57,8 @@ export default function Home() {
       setSources(payload.sources ?? []);
     } catch {
       setError("Could not search the articles.");
+    } finally {
+      setSearching(false);
     }
   }
 
@@ -64,8 +68,8 @@ export default function Home() {
     if (!file) return;
 
     const lowerName = file.name.toLowerCase();
-    if (!lowerName.endsWith(".txt") && !lowerName.endsWith(".pdf")) {
-      setError("Only .txt and .pdf files are supported.");
+    if (!lowerName.endsWith(".txt")) {
+      setError("Only .txt files are supported.");
       return;
     }
 
@@ -157,9 +161,7 @@ export default function Home() {
     <div className="flex min-h-screen flex-1 bg-zinc-950 font-sans text-zinc-100">
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 sm:px-10 sm:py-12">
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:items-start">
-
-        {/* SECTION 1: Search Form & Answer (Top Left) */}
-        <div className="flex w-full flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-sm">
+        <div className="flex w-full flex-col gap-2 rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-sm">
           <form className="flex items-center gap-3" onSubmit={onSearch}>
             <input
               id="query"
@@ -171,11 +173,14 @@ export default function Home() {
             />
             <button
               type="submit"
-              style={{ cursor: "pointer" }}
-              disabled={query.trim().length === 0}
-              className="h-14 shrink-0 rounded-lg bg-zinc-100 px-6 text-sm font-semibold text-zinc-950 hover:bg-white disabled:opacity-60"
+              style={{ cursor: searching ? "default" : "pointer" }}
+              disabled={searching || query.trim().length === 0}
+              className="inline-flex h-14 shrink-0 items-center justify-center gap-2 rounded-lg bg-zinc-100 px-6 text-sm font-semibold text-zinc-950 hover:bg-white disabled:opacity-60"
             >
-              Submit
+              {searching ? (
+                <span className="size-4 animate-spin rounded-full border-2 border-zinc-950/25 border-t-zinc-950" />
+              ) : null}
+              {searching ? "Searching" : "Submit"}
             </button>
           </form>
           <section
@@ -187,13 +192,11 @@ export default function Home() {
             ) : null}
             {sources.length > 0 ? (
               <p className="mt-auto pt-4 text-sm text-zinc-400 border-t border-zinc-800/80">
-                {sources.map((item) => `${item.name} [${item.source}]`).join(", ")}
+                {sources.map((item) => `${item.name}.txt [${item.source}]`).join(", ")}
               </p>
             ) : null}
           </section>
         </div>
-
-        {/* SECTION 2: Document / Text Upload Form (Top Right) */}
         <div className="flex w-full flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-sm">
           <form
             aria-label="Add article"
@@ -203,16 +206,15 @@ export default function Home() {
             <label
               className={`inline-flex h-12 items-center justify-center rounded-lg bg-zinc-100 px-5 text-sm font-semibold text-zinc-950 hover:bg-white ${reading ? "pointer-events-none opacity-60" : "cursor-pointer"}`}
             >
-              {reading ? "Reading…" : "Upload"}
+              {reading ? "Reading…" : "Upload .txt file"}
               <input
                 type="file"
-                accept=".txt,.pdf,text/plain,application/pdf"
+                accept=".txt,text/plain"
                 className="sr-only"
                 disabled={reading}
                 onChange={onFileChange}
               />
             </label>
-            <p className="text-xs text-zinc-400 text-center">Supports .txt and .pdf files only</p>
             {error ? <p className="text-sm text-red-400 text-center">{error}</p> : null}
             <div className="flex items-center gap-3 text-xs text-zinc-500 my-1">
               <span className="h-px flex-1 bg-zinc-800" />
@@ -238,7 +240,6 @@ export default function Home() {
             </button>
           </form>
         </div>
-
       </div>
       <div className="flex w-full flex-col gap-6 rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-sm">
       <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
