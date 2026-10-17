@@ -12,12 +12,10 @@ const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 500, chunkOverl
 
 export const VECTOR_DIR = path.join(process.cwd(), "data", "vectors");
 export const INDEX_FILE = path.join(VECTOR_DIR, "index.dat");
-const CHUNKS_FILE = path.join(VECTOR_DIR, "chunks.json"); // position in the array == hnsw label
+const CHUNKS_FILE = path.join(VECTOR_DIR, "chunks.json");
 
 export async function indexForVector(input: ArticleInput): Promise<{ chunks: Chunk[] }> {
   const chunks = await splitText(input.articleId, input.text);
-
-  console.log('new chunks: ')
 
   const embeddings = await embedChunks(chunks);
   await storeEmbeddings(embeddings, chunks);
@@ -43,13 +41,9 @@ async function storeEmbeddings(embeddings: number[][], chunks: Chunk[]) {
 
   index.writeIndexSync(INDEX_FILE);
   await writeFile(CHUNKS_FILE, JSON.stringify([...(await readChunks()), ...chunks]));
-
-  console.log(
-    `[vector] stored ${embeddings.length} embeddings (${embeddings[0]?.length ?? 0} dims); index now holds ${index.getCurrentCount()}/${index.getMaxElements()}`,
-  );
 }
 
-// TODO - This is also embedding on search so need to reflect it in the diagram
+// TODO - This is also embedding on search so need to reflect it in the diagram for the query
 export async function embedChunks(chunks: Chunk[]): Promise<number[][]> {
   if (chunks.length === 0) return [];
   const openai = new OpenAI();

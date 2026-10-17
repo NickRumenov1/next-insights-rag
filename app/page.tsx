@@ -34,7 +34,6 @@ export default function Home() {
   const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [searching, setSearching] = useState(false);
-  const [reading, setReading] = useState(false);
   const [articleText, setArticleText] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -76,53 +75,6 @@ export default function Home() {
       setError("Could not search the articles.");
     } finally {
       setSearching(false);
-    }
-  }
-
-  async function onFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-
-    const lowerName = file.name.toLowerCase();
-    if (!lowerName.endsWith(".txt")) {
-      setError("Only .txt files are supported.");
-      return;
-    }
-
-    setError(null);
-    setReading(true);
-
-    try {
-      const body = new FormData();
-      body.set("file", file);
-      const response = await fetch("/api/upload", { method: "POST", body });
-      const payload = (await response.json()) as {
-        error?: string;
-        article?: ArticleItem;
-      };
-      if (!response.ok) {
-        setError(payload.error ?? "Could not read that file.");
-        return;
-      }
-      if (payload.article) {
-        const uploaded = payload.article;
-        setArticles((current) =>
-          current.some((item) => item.id === uploaded.id)
-            ? current
-            : [...current, uploaded],
-        );
-
-        const processed = await fetch(`/api/articles/${uploaded.id}/process`, { method: "POST" });
-        const failure = (await processed.json().catch(() => null)) as { error?: string } | null;
-        if (!processed.ok) {
-          setError(failure?.error ?? "Could not process that article.");
-        }
-      }
-    } catch {
-      setError("Could not read that file.");
-    } finally {
-      setReading(false);
     }
   }
 
@@ -177,8 +129,8 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-1 bg-zinc-950 font-sans text-zinc-100">
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 sm:px-10 sm:py-12">
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:items-start">
-        <div className="flex w-full flex-col gap-2 rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-sm">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:items-stretch">
+        <div className="flex h-full w-full flex-col gap-2 rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-sm">
           <form className="flex items-center gap-3" onSubmit={onSearch}>
             <input
               id="query"
@@ -202,7 +154,7 @@ export default function Home() {
           </form>
           <section
             aria-label="Answer"
-            className="flex min-h-64 w-full flex-col rounded-lg border border-zinc-800 bg-zinc-950/80 p-5"
+            className="flex min-h-64 w-full flex-1 flex-col rounded-lg border border-zinc-800 bg-zinc-950/80 p-5"
           >
             {answer ? (
               <p className="whitespace-pre-wrap text-base leading-7 text-zinc-100">{answer}</p>
@@ -214,39 +166,16 @@ export default function Home() {
             ) : null}
           </section>
         </div>
-        <div className="flex w-full flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-sm">
-          <form
-            aria-label="Add article"
-            className="flex w-full flex-col gap-4"
-            onSubmit={(event) => event.preventDefault()}
-          >
-            <label
-              className={`inline-flex h-12 items-center justify-center rounded-lg bg-zinc-100 px-5 text-sm font-semibold text-zinc-950 hover:bg-white ${reading ? "pointer-events-none opacity-60" : "cursor-pointer"}`}
-            >
-              {reading ? "Reading…" : "Upload .txt file"}
-              <input
-                type="file"
-                accept=".txt,text/plain"
-                className="sr-only"
-                disabled={reading}
-                onChange={onFileChange}
-              />
-            </label>
-            {error ? <p className="text-sm text-red-400 text-center">{error}</p> : null}
-            <div className="flex items-center gap-3 text-xs text-zinc-500 my-1">
-              <span className="h-px flex-1 bg-zinc-800" />
-              <span>OR</span>
-              <span className="h-px flex-1 bg-zinc-800" />
-            </div>
-          </form>
-          <form className="flex w-full flex-col gap-3" onSubmit={onSaveText}>
+        <div className="flex w-full flex-col rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-sm">
+          <form className="flex h-full w-full flex-col gap-3" onSubmit={onSaveText}>
+            <h2 className="text-base font-semibold text-zinc-100">Create Article</h2>
             <textarea
               value={articleText}
               placeholder="Article text"
-              rows={5}
               onChange={(event) => setArticleText(event.target.value)}
-              className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-50 outline-none placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400"
+              className="min-h-64 flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-50 outline-none placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400"
             />
+            {error ? <p className="text-sm text-red-400">{error}</p> : null}
             <button
               type="submit"
               style={{ cursor: "pointer" }}

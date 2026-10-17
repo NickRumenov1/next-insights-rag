@@ -35,7 +35,6 @@ Knowledge Graph: `graphology`
 
 - `GET /api/articles` - List articles
 - `POST /api/articles/create` - Create an article from text
-- `POST /api/upload` - Upload an article file (.txt)
 - `POST /api/articles/[articleId]/process` - Process an article (extract graph/vectors)
 - `POST /api/search` - Search through processed articles using query
 - `DELETE /api/delete` - Delete all articles, graph and vectors

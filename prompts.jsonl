@@ -156,3 +156,5 @@
 {"date": "17.10 17:36", "model_id": "claude-sonnet-5-5", "prompt": "@app/api/articles/[articleId]/process/graph-process.ts:58 I meant this graph.order - nodesBefore"}
 {"date": "17.10 17:38", "model_id": "claude-sonnet-5-5", "prompt": "ok, put a docs for this function indexForGraph@app/api/articles/[articleId]/process/graph-process.ts \nAdd example of graph structure"}
 {"date": "17.10 17:40", "model_id": "claude-sonnet-5-5", "prompt": "For the code present, we get this error:\n```\nParameter 'attributes' implicitly has an 'any' type.\n```\nFix it, verify, and then give a concise explanation. @app/api/articles/[articleId]/process/graph-process.ts:50-53 "}
+{"date": "17.10 17:50", "model_id": "grok-4.7", "prompt": "remove the whole functionality with uploading articles with the Upload button and keep the text area box only, align the height of the form after that with the query form"}
+{"date": "17.10 17:52", "model_id": "grok-4.7", "prompt": "Add Create Article on above to the text area"}

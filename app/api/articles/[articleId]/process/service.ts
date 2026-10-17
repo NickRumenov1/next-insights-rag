@@ -17,7 +17,7 @@ export async function processArticle(articleId: string): Promise<ProcessResult> 
   const input = { articleId, name, text };
   const [vector, graph] = await Promise.all([indexForVector(input), indexForGraph(input)]);
   console.log('new vector chunks: ', vector);
-  console.log('new processed graph nodes: ', graph)
+  console.log('new graph nodes & edges: ', graph);
   return { articleId, vector, graph };
 }
 
