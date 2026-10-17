@@ -28,7 +28,7 @@ export async function search(query: string) {
 export async function promptForJson<T = Record<string, string[]>>(system: string, user: string) {
   const openai = new OpenAI();
   const res = await openai.chat.completions.create({
-    model: "gpt-6.1-sol",
+    model: process.env.OPENAI_MODEL ?? "gpt-6.1-sol",
     response_format: { type: "json_object" },
     messages: [
       { role: "system", content: system },

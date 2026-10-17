@@ -4,7 +4,7 @@ Analysts ask one question over a small set of articles. The service answers from
 
 ## How to run it
 
-Add `OPENAI_API_KEY` in `.env.local` and run:
+Add `OPENAI_API_KEY` & `OPENAI_MODEL` (e.g. `gpt-6.1-sol`) in `.env.local`
 ```bash
 nvm use 24.5.0
 npm run dev
@@ -53,14 +53,16 @@ flowchart TD
     Extract --> GraphPipeline["Knowledge Graph Pipeline"]
 
     subgraph Vector Pipeline
-        VectorPipeline --> Split["Split text into small chunks"]
-        Split --> Embed["Generate vector embeddings<br/><i>(text-embedding-3-small)</i>"]
-        Embed --> SaveVector["Save vectors to index<br/><i>(hnswlib-node & chunks.json)</i>"]
+        VectorPipeline --> Split["Split text to chunks<br/><i>(LangChain RecursiveCharacterTextSplitter)</i><br/><i>chunkSize: 500, chunkOverlap: 50</i>"]
+        Split --> Embed["Generate vector embeddings<br/><i>(OpenAI text-embedding-3-small)</i><br/><i>1536 dimensions</i>"]
+        Embed --> SaveVector["Save vectors<br/><i>(hnswlib-node, cosine, 1536 dims → data/vectors/index.dat)</i><br/><i>Save chunk text & metadata → chunks.json</i>"]
     end
 
     subgraph Knowledge Graph Pipeline
-        GraphPipeline --> Facts["Extract facts & triples<br/><i>(gpt-6.1-sol)</i>"]
-        Facts --> SaveGraph["Save entities & relationships<br/><i>(In-memory MultiDirectedGraph)</i>"]
+        GraphPipeline --> Vocab["Load vocabulary from the graph<br/><i>(top 100 entity types & predicates, generic seeds as fallback)</i>"]
+        Vocab --> Facts["Extract facts & triples<br/><i>(OpenAI gpt-6.1-sol)</i><br/><i>reuses vocabulary terms, adds new ones only if none fits</i>"]
+        Facts --> SaveGraph["Save entities & relationships<br/><i>(graphology in-memory MultiDirectedGraph)</i>"]
+        SaveGraph -. "new types & predicates grow the vocabulary<br/>for the next articles" .-> Vocab
     end
 ```
 
@@ -82,7 +84,7 @@ flowchart TD
     subgraph Hybrid Search
         HybridSearch --> Semantic["Dense Search<br/><i>(Vector Similarity)</i>"]
         HybridSearch --> Keyword["Sparse Search<br/><i>(BM25 Keyword Match)</i>"]
-        Semantic --> Combine["Reciprocal Rank Fusion<br/><i>(Combine top 5 results)</i>"]
+        Semantic --> Combine["Reciprocal Rank Fusion<br/><i>score = Σ 1 / (60 + rank)</i><br/><i>(Fuse top 20 from each, keep top 5)</i>"]
         Keyword --> Combine
     end
 
@@ -90,6 +92,4 @@ flowchart TD
     Combine --> Merge
 
     Merge --> LLM["LLM Answer Generator<br/><i>(gpt-6.1-sol)</i>"]
-    LLM --> Verify["Verify Sources & Citations"]
-    Verify --> Answer["👤 Response returned with sources"]
 ```

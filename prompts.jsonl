@@ -140,3 +140,19 @@
 {"date": "17.10 14:55", "model_id": "claude-sonnet-5-5", "prompt": "Might we have issues because of the cheap model that we chosed to judge the final answer gpt-4o-mini"}
 {"date": "17.10 15:01", "model_id": "claude-sonnet-5-5", "prompt": "add GPT-6.1 Sol as for the tests and everywhere in the pipelines:\nGPT-6.1 Sol"}
 {"date": "17.10 15:17", "model_id": "claude-sonnet-5-5", "prompt": "different cases failed this time, 2,3 differences, try with: GPT-6.1 Sol"}
+{"date": "17.10 16:05", "model_id": "claude-sonnet-5-5", "prompt": "Bring back GPT-6 Luna in all the places as a model since it is cheaper"}
+{"date": "17.10 16:15", "model_id": "claude-sonnet-5-5", "prompt": "add the model in an env variable in @.env.local \nset gpt-6.1-sol that is chosen and gpt-6-luna as commented one belowe\nreplace all the places that use model with the env variable, also make a fallback if no env variable to use gpt-6.1.sol"}
+{"date": "17.10 16:16", "model_id": "claude-sonnet-5-5", "prompt": "add the model in an env variable in @.env.local \nset gpt-6.1-sol that is chosen and gpt-6-luna as commented one belowe\nreplace all the places that use model with the env variable, also make a fallback if no env variable to use gpt-6.1.sol"}
+{"date": "17.10 16:55", "model_id": "gemini-3.1-pro", "prompt": "@README.md Improve Indexing diagram:\n1. Combine Upload Article & Extract Text \n2. Remove Knowledge Graph Pipeline and Vector Pipeline dedicated boxes and keep the titles of the parent sections only\n3. Split text into small chunks - Add info for Langchain and its config \n4. Generate vector embeddings - Mention OpenAI  "}
+{"date": "17.10 17:01", "model_id": "claude-sonnet-5-5", "prompt": "Add more details for the vector pipeline, e.g. Mention Langchain and its configuration in Split Text into small chunks, and the title could be like: Split text to chunks\nAlso mention OpenAI with text-embedding-3-small model, offer also other configs and steps to add if something is missed"}
+{"date": "17.10 17:06", "model_id": "claude-sonnet-5-5", "prompt": "For the knowledge graph pipeline add Open for gpt-6.1-sol model and\nadd a step for vocabulary growing based on the articles"}
+{"date": "17.10 17:09", "model_id": "claude-sonnet-5-5", "prompt": "Mention graphology library for the grap pipeline "}
+{"date": "17.10 17:16", "model_id": "claude-sonnet-5-5", "prompt": "@app/api/search/vector-search.ts  split Reciprocal Rank Fusion functionality in an external function + function docs with examples, keep it in same file"}
+{"date": "17.10 17:19", "model_id": "claude-sonnet-5-5", "prompt": "mention the formula in the diagram box for Reciprocal Rank Fusion"}
+{"date": "17.10 17:21", "model_id": "claude-sonnet-5-5", "prompt": "Where is the config for (Combine top 5 results)"}
+{"date": "17.10 17:23", "model_id": "claude-sonnet-5-5", "prompt": "So if we have 10 matches the function will get the 1st 5 only and will apply the fusion formula to them only"}
+{"date": "17.10 17:24", "model_id": "claude-sonnet-5-5", "prompt": "reword it"}
+{"date": "17.10 17:35", "model_id": "claude-sonnet-5-5", "prompt": "Does this remove the old nodes from the graph?"}
+{"date": "17.10 17:36", "model_id": "claude-sonnet-5-5", "prompt": "@app/api/articles/[articleId]/process/graph-process.ts:58 I meant this graph.order - nodesBefore"}
+{"date": "17.10 17:38", "model_id": "claude-sonnet-5-5", "prompt": "ok, put a docs for this function indexForGraph@app/api/articles/[articleId]/process/graph-process.ts \nAdd example of graph structure"}
+{"date": "17.10 17:40", "model_id": "claude-sonnet-5-5", "prompt": "For the code present, we get this error:\n```\nParameter 'attributes' implicitly has an 'any' type.\n```\nFix it, verify, and then give a concise explanation. @app/api/articles/[articleId]/process/graph-process.ts:50-53 "}
