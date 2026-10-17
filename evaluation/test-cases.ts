@@ -58,7 +58,8 @@ export const testCases: TestCase[] = [
       { name: "art-1", text: "Salesforce acquired Slack." },
       { name: "art-2", text: "The deal happened in 2023." },
     ],
-    expected: "Salesforce acquired Slack in 2023.",
+    expected: "Salesforce acquired Slack, but the articles don't say when." +
+        " One mentions a deal in 2023 without naming the companies.",
   },
   {
     id: "T-007",

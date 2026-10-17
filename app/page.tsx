@@ -17,7 +17,6 @@ export default function Home() {
   const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [reading, setReading] = useState(false);
-  const [title, setTitle] = useState("");
   const [articleText, setArticleText] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -115,7 +114,7 @@ export default function Home() {
       const response = await fetch("/api/articles/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, text: articleText }),
+        body: JSON.stringify({ text: articleText }),
       });
       const payload = (await response.json()) as { error?: string; article?: ArticleItem };
       if (!response.ok || !payload.article) {
@@ -124,7 +123,6 @@ export default function Home() {
       }
       const saved = payload.article;
       setArticles((current) => [...current, saved]);
-      setTitle("");
       setArticleText("");
 
       const processed = await fetch(`/api/articles/${saved.id}/process`, { method: "POST" });
@@ -219,13 +217,6 @@ export default function Home() {
           </div>
         </form>
         <form className="flex w-full flex-col gap-3" onSubmit={onSaveText}>
-          <input
-            type="text"
-            value={title}
-            placeholder="Title"
-            onChange={(event) => setTitle(event.target.value)}
-            className="h-12 rounded-lg border border-zinc-600 bg-zinc-900 px-4 text-sm text-zinc-50 outline-none placeholder:text-zinc-400 focus:border-zinc-300"
-          />
           <textarea
             value={articleText}
             placeholder="Article text"
@@ -236,7 +227,7 @@ export default function Home() {
           <button
             type="submit"
             style={{ cursor: "pointer" }}
-            disabled={saving || title.trim().length === 0 || articleText.trim().length === 0}
+            disabled={saving || articleText.trim().length === 0}
             className="h-12 rounded-lg bg-zinc-100 px-5 text-sm font-medium text-zinc-950 hover:bg-white disabled:opacity-60"
           >
             {saving ? "Saving…" : "Save"}
@@ -250,7 +241,7 @@ export default function Home() {
             style={{ cursor: "pointer" }}
             className="h-12 rounded-lg border border-red-400 px-5 text-sm font-medium text-red-300 hover:bg-red-950"
           >
-            Delete all articles
+            Delete data (articles, vectors & graph)
           </button>
         ) : null}
         {articles.length > 0 ? (
