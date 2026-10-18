@@ -2,23 +2,11 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { ARTICLES_DIR, articleKind, HttpError, textFromBytes } from "../../service";
 import { indexForGraph } from "./graph-process";
-import { indexForVector, type Chunk } from "./vector-process";
+import { indexForVector } from "./vector-process";
 
-export type ArticleInput = { articleId: string; name: string; text: string };
-
-export type ProcessResult = {
-  articleId: string;
-  vector: { chunks: Chunk[] };
-  graph: { nodes: number; edges: number };
-};
-
-export async function processArticle(articleId: string): Promise<ProcessResult> {
-  const { name, text } = await readArticle(articleId);
-  const input = { articleId, name, text };
-  const [vector, graph] = await Promise.all([indexForVector(input), indexForGraph(input)]);
-  console.log('new vector chunks: ', vector);
-  console.log('new graph nodes & edges: ', graph);
-  return { articleId, vector, graph };
+export async function processArticle(articleId: string): Promise<void> {
+  const { text } = await readArticle(articleId);
+  await Promise.all([indexForVector(articleId, text), indexForGraph(articleId, text)]);
 }
 
 async function readArticle(id: string): Promise<{ id: string; name: string; text: string }> {

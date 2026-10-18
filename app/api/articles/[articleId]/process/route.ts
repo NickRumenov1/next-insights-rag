@@ -7,7 +7,8 @@ export async function POST(
 ) {
   try {
     const { articleId } = await params;
-    return Response.json(await processArticle(articleId));
+    await processArticle(articleId);
+    return Response.json({ ok: true });
   } catch (error) {
     if (error instanceof HttpError) {
       return Response.json({ error: error.message }, { status: error.status });

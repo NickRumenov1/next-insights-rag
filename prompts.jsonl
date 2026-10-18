@@ -158,3 +158,26 @@
 {"date": "17.10 17:40", "model_id": "claude-sonnet-5-5", "prompt": "For the code present, we get this error:\n```\nParameter 'attributes' implicitly has an 'any' type.\n```\nFix it, verify, and then give a concise explanation. @app/api/articles/[articleId]/process/graph-process.ts:50-53 "}
 {"date": "17.10 17:50", "model_id": "grok-4.7", "prompt": "remove the whole functionality with uploading articles with the Upload button and keep the text area box only, align the height of the form after that with the query form"}
 {"date": "17.10 17:52", "model_id": "grok-4.7", "prompt": "Add Create Article on above to the text area"}
+{"date": "18.10 10:14", "model_id": "grok-4.7", "prompt": "Scan for prompt injection vulnerabilities @app/api "}
+{"date": "18.10 10:36", "model_id": "claude-sonnet-5-5", "prompt": "wouldnt be better if configure LangChain with RecursiveCharacterTextSplitter 800/100 @app/api/articles/[articleId]/process/vector-process.ts "}
+{"date": "18.10 10:43", "model_id": "claude-sonnet-5-5", "prompt": "@app/api/articles/[articleId]/process/graph-process.ts:65-76 Add examples for this cases where graph mergeNode with subject and with object and addEdge comments with example"}
+{"date": "18.10 10:48", "model_id": "claude-sonnet-5-5", "prompt": "put 2 example sentences with and without subject and object @app/api/articles/[articleId]/process/graph-process.ts:66-76 "}
+{"date": "18.10 10:50", "model_id": "claude-sonnet-5-5", "prompt": "@app/api/articles/[articleId]/process/graph-process.ts:65-92 remove withoutEmpty function, add inline checks in the objects if the properties exist"}
+{"date": "18.10 10:54", "model_id": "claude-sonnet-5-5", "prompt": "Cant we simplify that, so if fact.subject and fact.object, does it always need to have subject, simplify that and make it more readable @app/api/articles/[articleId]/process/graph-process.ts:65-84 "}
+{"date": "18.10 11:10", "model_id": "claude-sonnet-5-5", "prompt": "@app/api/articles/[articleId]/process/graph-process.ts:111 Give examples with this formatting"}
+{"date": "18.10 11:16", "model_id": "claude-sonnet-5-5", "prompt": "Does indexForGraph need to return graph count and edge counts, do we use it somewhere in the app @app/api/articles/[articleId]/process/graph-process.ts:58-59 "}
+{"date": "18.10 11:21", "model_id": "claude-sonnet-5-5", "prompt": "Yes, remove it, no need that"}
+{"date": "18.10 11:32", "model_id": "claude-sonnet-5-5", "prompt": "@app/api/articles/[articleId]/process/graph-process.ts:102-119 is count the best name here for that, simplify the function which puts the new learned entities and predicates"}
+{"date": "18.10 11:34", "model_id": "claude-sonnet-5-5", "prompt": "What if initially seeded ones are more used from the new ones from the graph, they will still go on the top, right"}
+{"date": "18.10 11:35", "model_id": "claude-sonnet-5-5", "prompt": "can we make them to rank with the new ones and what if they repeat "}
+{"date": "18.10 11:43", "model_id": "claude-sonnet-5-5", "prompt": "make that inline @app/api/articles/[articleId]/process/graph-process.ts:136-137 "}
+{"date": "18.10 11:50", "model_id": "claude-sonnet-5-5", "prompt": "@app/api/articles/[articleId]/process/graph-process.ts:48-49  why we need to filter it after the return"}
+{"date": "18.10 11:50", "model_id": "claude-sonnet-5-5", "prompt": "give me bad example for a fact"}
+{"date": "18.10 11:52", "model_id": "claude-sonnet-5-5", "prompt": "what if a fact has subject and predicate but doesnt have object and value, isnt this expected, is value always like a date or cost or metric etc.."}
+{"date": "18.10 11:55", "model_id": "claude-sonnet-5-5", "prompt": "I added the comment like:\n@graph-process.ts (49-50) \nRemove the check for object and value, as far as I understood is that the graph can grow because of facts like that"}
+{"date": "18.10 11:56", "model_id": "claude-sonnet-5-5", "prompt": "Excluding the growing graph it cannot bring bugs and the evaluation will still pass right"}
+{"date": "18.10 13:03", "model_id": "claude-sonnet-5-5", "prompt": "ok but what if we have metric insted of value?"}
+{"date": "18.10 13:04", "model_id": "claude-sonnet-5-5", "prompt": "give me example with a sentence with value but no metric that we want to exclude"}
+{"date": "18.10 13:07", "model_id": "claude-sonnet-5-5", "prompt": "@app/api/articles/[articleId]/process/graph-process.ts:47 @app/api/articles/[articleId]/process/vector-process.ts:17 make indexForGraph and indexForVector args to be articleId and text only as strings and remove ArticleInput object @app/api/articles/[articleId]/process/service.ts:7-8 "}
+{"date": "18.10 13:10", "model_id": "claude-sonnet-5-5", "prompt": "Do we need to retrun articleId and vector in processArticle, cant we just resolve the promise with void"}
+{"date": "18.10 13:11", "model_id": "claude-sonnet-5-5", "prompt": "yes, remove it as well"}

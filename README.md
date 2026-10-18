@@ -52,7 +52,7 @@ flowchart TD
     Extract --> GraphPipeline["Knowledge Graph Pipeline"]
 
     subgraph Vector Pipeline
-        VectorPipeline --> Split["Split text to chunks<br/><i>(LangChain RecursiveCharacterTextSplitter)</i><br/><i>chunkSize: 500, chunkOverlap: 50</i>"]
+        VectorPipeline --> Split["Split text to chunks<br/><i>(LangChain RecursiveCharacterTextSplitter)</i><br/><i>chunkSize: 800, chunkOverlap: 100</i>"]
         Split --> Embed["Generate vector embeddings<br/><i>(OpenAI text-embedding-3-small)</i><br/><i>1536 dimensions</i>"]
         Embed --> SaveVector["Save vectors<br/><i>(hnswlib-node, cosine, 1536 dims → data/vectors/index.dat)</i><br/><i>Save chunk text & metadata → chunks.json</i>"]
     end

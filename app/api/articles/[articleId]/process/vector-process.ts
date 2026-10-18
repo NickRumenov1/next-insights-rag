@@ -4,23 +4,30 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import OpenAI from "openai";
-import type { ArticleInput } from "./service";
-
-export type Chunk = { id: string; articleId: string; index: number; text: string };
-
-const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 500, chunkOverlap: 50 });
 
 export const VECTOR_DIR = path.join(process.cwd(), "data", "vectors");
 export const INDEX_FILE = path.join(VECTOR_DIR, "index.dat");
 const CHUNKS_FILE = path.join(VECTOR_DIR, "chunks.json");
 
-export async function indexForVector(input: ArticleInput): Promise<{ chunks: Chunk[] }> {
-  const chunks = await splitText(input.articleId, input.text);
+export type Chunk = { id: string; articleId: string; index: number; text: string };
+
+const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 800, chunkOverlap: 100 });
+
+export async function indexForVector(articleId: string, text: string): Promise<void> {
+  const chunks = await splitText(articleId, text);
 
   const embeddings = await embedChunks(chunks);
   await storeEmbeddings(embeddings, chunks);
+}
 
-  return { chunks };
+async function splitText(articleId: string, text: string): Promise<Chunk[]> {
+  const docs = await splitter.createDocuments([text], [{ articleId }]);
+  return docs.map((doc, index) => ({
+    id: `${articleId}-${index}`,
+    articleId,
+    index,
+    text: doc.pageContent,
+  }));
 }
 
 export async function readChunks(): Promise<Chunk[]> {
@@ -52,14 +59,4 @@ export async function embedChunks(chunks: Chunk[]): Promise<number[][]> {
     input: chunks.map((c) => c.text),
   });
   return res.data.map((d) => d.embedding);
-}
-
-async function splitText(articleId: string, text: string): Promise<Chunk[]> {
-  const docs = await splitter.createDocuments([text], [{ articleId }]);
-  return docs.map((doc, index) => ({
-    id: `${articleId}-${index}`,
-    articleId,
-    index,
-    text: doc.pageContent,
-  }));
 }

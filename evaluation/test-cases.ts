@@ -137,7 +137,7 @@ export const testCases: TestCase[] = [
     id: "T-015",
     query: "Which company acquired Slack?",
     articles: [
-      { name: "art-1", text: "Slack now belongs to Salesforce." },
+      { name: "art-1", text: "Slack is now acquired by Salesforce." },
       { name: "art-2", text: "Zoom launched a new video product." },
     ],
     expected: "Salesforce acquired Slack.",

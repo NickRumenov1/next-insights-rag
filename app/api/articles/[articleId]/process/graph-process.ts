@@ -1,19 +1,8 @@
 import { MultiDirectedGraph } from "graphology";
 import OpenAI from "openai";
-import type { ArticleInput } from "./service";
-
-// Generic fallback so the first articles have something to reuse; the graph's own terms take over as it grows.
-const SEED_ENTITY_TYPES = ["organization", "person", "product", "technology", "location", "event"];
-const SEED_PREDICATES = [
-  "acquired",
-  "invested_in",
-  "partnered_with",
-  "launched",
-  "announced",
-  "appointed",
-  "reported",
-];
-const VOCABULARY_SIZE = 100;
+const SEED_ENTITIES = ["organization", "person", "product", "technology", "location", "event"];
+const SEED_PREDICATES = ["acquired", "invested_in", "partnered_with", "launched", "announced", "reported",];
+const VOCABULARY_SIZE = 200;
 
 type Fact = {
   subject: string;
@@ -36,69 +25,84 @@ const globalForGraph = globalThis as unknown as { knowledgeGraph?: MultiDirected
 export const graph = (globalForGraph.knowledgeGraph ??= new MultiDirectedGraph());
 
 /**
- * Extracts subject-predicate-object facts from an article with the LLM and adds them to the shared in-memory graph.
- * - Each entity is a node keyed by its name (existing nodes are reused and their attributes merged).
- * - Each fact is a new edge `subject -[predicate]-> object`, tagged with the source `articleId`.
+ * Extracts facts from an article and adds them to the shared graph.
+ * Entities become nodes, and facts become edges tagged with the source article.
  *
- * @param input The article id and its text.
- * @returns `nodes`: how many new nodes this article created; `edges`: how many edges (facts) it added.
+ * @param articleId The article id.
+ * @param text The article text.
  *
  * @example
- * // Article "a1": "Acme acquired Beta in March 2026. Acme reported revenue of $12.3B in Q3 2026."
- * await indexForGraph({ articleId: "a1", text }); // { nodes: 2, edges: 2 }
+ * // Article: "Acme acquired Beta in March 2026.
+ * //          Acme reported revenue of $12.3B in Q3 2026."
+ * await indexForGraph("a1", text);
  *
  * // Resulting graph:
  * //
- * // nodes
- * //   "Acme" { type: "organization" }
- * //   "Beta" { type: "organization" }
- * //
- * // edges
- * //   "Acme" -> "Beta"
- * //     { predicate: "acquired", articleId: "a1", date: "March 2026", negated: false }
- * //   "Acme" -> "Acme"   (self-loop, measured figure)
- * //     { predicate: "reported", articleId: "a1", negated: false,
- * //       metric: "revenue", value: "12.3", unit: "USD billion", period: "Q3 2026" }
+ * //  Acme ──[acquired, date: "March 2026"]──> Beta
+ * //    │
+ * //    └──[reported, metric: "revenue", value: "12.3",
+ * //         unit: "USD billion", period: "Q3 2026"]──> Acme // self-loop since there is no object
  */
-export async function indexForGraph(input: ArticleInput): Promise<{ nodes: number; edges: number }> {
-  const facts = (await extractFacts(input.text)).filter((f) => f.subject && f.predicate && (f.object || f.value));
-  const nodesBefore = graph.order;
+export async function indexForGraph(articleId: string, text: string): Promise<void> {
+
+  const facts = (await extractFacts(text)).filter((f) => f.subject && f.predicate && (f.object || f.value));
 
   for (const fact of facts) {
     console.log('new fact: ', fact);
-    graph.mergeNode(fact.subject, withoutEmpty({ type: fact.subjectType && normalizeTerm(fact.subjectType), sector: fact.subjectSector }));
-    if (fact.object) {
-      graph.mergeNode(fact.object, withoutEmpty({ type: fact.objectType && normalizeTerm(fact.objectType), sector: fact.objectSector }));
+
+    // Merge subject and object nodes; skip the object if there isn't one.
+    // Example: "Salesforce acquired Slack"
+    //   fact.subject = "Salesforce"
+    //   fact.subjectType = "organization", fact.subjectSector = "CRM"
+    //   fact.object = "Slack"
+    //   fact.objectType = "organization", fact.objectSector = "messaging"
+    //
+    // Example: "Acme reported revenue of $12.3B"
+    //   fact.subject = "Acme"
+    //   fact.subjectType = "organization", fact.subjectSector = "finance"
+    //   fact.object = undefined, fact.objectType = undefined, fact.objectSector = undefined
+    for (const { name, type, sector } of [
+      { name: fact.subject, type: fact.subjectType, sector: fact.subjectSector },
+      { name: fact.object, type: fact.objectType, sector: fact.objectSector },
+    ]) {
+      if (!name) continue;
+
+      graph.mergeNode(name, {
+        ...(type && { type: normalizeTerm(type) }),
+        ...(sector && { sector }),
+      });
     }
-    // A measured figure has no object entity, so it becomes a self-loop on the subject.
+
+    // Add an edge for each fact, linking the subject to the object and recording its source article.
+    // Example: Salesforce -> Slack (predicate: "acquired", date: "July 2021").
+    // If there's no object (e.g. Acme reported revenue), create a self-loop: Acme -> Acme,
     graph.addEdge(fact.subject, fact.object || fact.subject, {
       predicate: normalizeTerm(fact.predicate),
-      articleId: input.articleId,
+      articleId,
       date: fact.date || undefined,
       negated: fact.negated === true,
-      ...withoutEmpty({ metric: fact.metric, value: fact.value, unit: fact.unit, period: fact.period }),
+      ...(fact.metric ? { metric: fact.metric } : {}),
+      ...(fact.value ? { value: fact.value } : {}),
+      ...(fact.unit ? { unit: fact.unit } : {}),
+      ...(fact.period ? { period: fact.period } : {}),
     });
   }
-
-  return { nodes: graph.order - nodesBefore, edges: facts.length };
 }
 
-const normalizeTerm = (term: string) => term.trim().toLowerCase().replace(/\s+/g, "_");
-
-/** Entity types and predicates already in the graph (most used first), topped up with the generic seeds. */
+/** Entity types and predicates ranked by use in the graph; each generic seed counts as one extra use. */
 export function vocabulary() {
-  const count = (values: unknown[], seeds: string[]) => {
-    const counts = new Map<string, number>();
+  const mostUsedWithSeeds = (values: unknown[], seeds: string[]) => {
+    // Each initially seeded term starts with 1 use so it also ranks it with the new ones
+    const uses = new Map(seeds.map((seed) => [seed, 1]));
     for (const value of values) {
-      if (typeof value === "string") counts.set(value, (counts.get(value) ?? 0) + 1);
+      if (typeof value === "string") uses.set(value, (uses.get(value) ?? 0) + 1);
     }
-    const learned = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([term]) => term);
-    return [...new Set([...learned, ...seeds])].slice(0, VOCABULARY_SIZE);
+    return [...uses].sort((a, b) => b[1] - a[1]).slice(0, VOCABULARY_SIZE).map(([term]) => term);
   };
 
   return {
-    entityTypes: count(graph.mapNodes((_, attributes: Record<string, unknown>) => attributes.type), SEED_ENTITY_TYPES),
-    predicates: count(graph.mapEdges((_, attributes: Record<string, unknown>) => attributes.predicate), SEED_PREDICATES)
+    entityTypes: mostUsedWithSeeds(graph.mapNodes((_, { type }) => type), SEED_ENTITIES),
+    predicates: mostUsedWithSeeds(graph.mapEdges((_, { predicate }) => predicate), SEED_PREDICATES),
   };
 }
 
@@ -112,24 +116,22 @@ async function extractFacts(text: string): Promise<Fact[]> {
       {
         role: "system",
         content: `Extract the facts explicitly stated in the article (tech news, financial report or press release) as subject-predicate-object triples.
-Reply with JSON: {"facts": [{"subject", "subjectType", "subjectSector", "predicate", "object", "objectType", "objectSector", "metric", "value", "unit", "period", "date", "negated"}]}.
-Rules:
-- Use short canonical entity names ("Salesforce.com Inc." -> "Salesforce").
-- Entity types in use: ${entityTypes.join(", ")}. Reuse one whenever it fits; add a new lowercase snake_case type only if none does.
-- Predicates in use: ${predicates.join(", ")}. Reuse one whenever it has the same meaning (bought -> acquired); add a new lowercase snake_case predicate only if none does.
-- A measured figure has no object entity: leave "object" out and set "metric" ("revenue", "eps"), "value" (as written, "12.3"), "unit" ("USD billion") and "period" ("Q3 2026"). Example: "Acme reported revenue of $12.3B in Q3 2026" -> predicate "reported", metric "revenue".
-- "subjectSector"/"objectSector" are optional free-form industries such as "database" or "AI".
-- "date" is optional, exactly as stated in the article.
-- "negated" is true when the article says the fact did not happen ("never acquired", "did not acquire").
-- Skip speculation, hopes and hypotheticals ("might acquire someday").`,
+          Reply with JSON: {"facts": [{"subject", "subjectType", "subjectSector", "predicate", "object", "objectType", "objectSector", "metric", "value", "unit", "period", "date", "negated"}]}.
+          Rules:
+          - Use short canonical entity names ("Salesforce.com Inc." -> "Salesforce").
+          - Entity types in use: ${entityTypes.join(", ")}. Reuse one whenever it fits; add a new lowercase snake_case type only if none does.
+          - Predicates in use: ${predicates.join(", ")}. Reuse one whenever it has the same meaning (bought -> acquired); add a new lowercase snake_case predicate only if none does.
+          - A measured figure has no object entity: leave "object" out and set "metric" ("revenue", "eps"), "value" (as written, "12.3"), "unit" ("USD billion") and "period" ("Q3 2026"). Example: "Acme reported revenue of $12.3B in Q3 2026" -> predicate "reported", metric "revenue".
+          - "subjectSector"/"objectSector" are optional free-form industries such as "database" or "AI".
+          - "date" is optional, exactly as stated in the article.
+          - "negated" is true when the article says the fact did not happen ("never acquired", "did not acquire").
+          - Skip speculation, hopes and hypotheticals ("might acquire someday").`,
       },
       { role: "user", content: text },
     ],
   });
-  const parsed = JSON.parse(res.choices[0]?.message.content ?? "{}") as { facts?: Fact[] };
-  return parsed.facts ?? [];
+  return (JSON.parse(res.choices[0]?.message.content ?? "{}") as { facts?: Fact[] }).facts ?? [];
 }
 
-function withoutEmpty(attributes: Record<string, string | undefined>) {
-  return Object.fromEntries(Object.entries(attributes).filter(([, value]) => value));
-}
+// Organization -> organization, "  Invested In " -> invested_in, "partnered   with" -> partnered_with
+const normalizeTerm = (term: string) => term.trim().toLowerCase().replace(/\s+/g, "_");
