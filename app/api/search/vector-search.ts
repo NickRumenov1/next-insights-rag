@@ -10,23 +10,23 @@ export async function searchVectors(query: string, k = 5): Promise<Chunk[]> {
   const chunks = await readChunks();
   if (chunks.length === 0 || !existsSync(INDEX_FILE)) return [];
 
-  const index = new HierarchicalNSW("cosine", 1536);
-  index.readIndexSync(INDEX_FILE);
+  const vectorIndex = new HierarchicalNSW("cosine", 1536);
+  vectorIndex.readIndexSync(INDEX_FILE);
   const [embedding] = await getEmbeddingsByChunks([{ id: "query", articleId: "", index: 0, text: query }]);
-  const { neighbors, distances } = index.searchKnn(embedding, Math.min(20, index.getCurrentCount()));
+  const { neighbors, distances } = vectorIndex.searchKnn(embedding, Math.min(20, vectorIndex.getCurrentCount()));
   const dense = neighbors.filter((_, rank) => distances[rank] <= MAX_DISTANCE);
   const sparse = bm25Rank(query, chunks).slice(0, 20);
 
   return reciprocalRankFusion([dense, sparse], k).map((position) => chunks[position]);
 }
 
-const tokenize = (text: string): string[] => text.toLowerCase().match(/[a-z0-9]+/g) ?? [];
+const normalize = (text: string): string[] => text.toLowerCase().match(/[a-z0-9]+(?:[.,](?=\d)[a-z0-9]+)*/g) ?? [];
 
 /** BM25 (k1 = 1.5, b = 0.75). Returns chunk positions ranked best-first, matches only. */
 function bm25Rank(query: string, chunks: Chunk[]): number[] {
-  const docs = chunks.map((chunk) => tokenize(chunk.text));
+  const docs = chunks.map((chunk) => normalize(chunk.text));
   const avgLength = docs.reduce((sum, doc) => sum + doc.length, 0) / docs.length;
-  const terms = new Set(tokenize(query));
+  const terms = new Set(normalize(query));
 
   return docs
     .map((doc, position) => {

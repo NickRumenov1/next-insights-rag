@@ -6,7 +6,7 @@ import { promptForJson } from "./service";
  * With entities: every edge touching them (either direction). Without: every edge with one of the predicates.
  * A non-empty predicates list narrows both.
  */
-export function searchGraph(entities: string[], predicates: string[], limit = 30): { articleId: string; text: string }[] {
+export function searchGraph(entities: string[], predicates: string[], limit = 30): { text: string }[] {
   const wanted = new Set(predicates);
   if (entities.length === 0 && wanted.size === 0) return [];
 
@@ -20,13 +20,13 @@ export function searchGraph(entities: string[], predicates: string[], limit = 30
     .filter((edge) => wanted.size === 0 || wanted.has(graph.getEdgeAttribute(edge, "predicate")))
     .slice(0, limit)
     .map((edge) => {
-      const { predicate, articleId, date, negated, metric, value, unit, period } = graph.getEdgeAttributes(edge);
+      const { predicate, date, negated, metric, value, unit, period } = graph.getEdgeAttributes(edge);
       const [subject, object] = [graph.source(edge), graph.target(edge)];
       const what = value
         ? [metric, value, unit, period && `in ${period}`].filter(Boolean).join(" ")
         : label(object);
       const text = `${label(subject)} ${String(predicate).replaceAll("_", " ")} ${what}${date ? `, ${date}` : ""}`;
-      return { articleId, text: negated ? `NOT TRUE (the article denies it): ${text}` : text };
+      return { text: negated ? `NOT TRUE (the article denies it): ${text}` : text };
     });
 }
 

@@ -204,3 +204,11 @@
 {"date": "18.10 16:05", "model_id": "claude-sonnet-5-5", "prompt": "should we raise it 0.8 or 0.9 to not miss something"}
 {"date": "18.10 16:06", "model_id": "claude-sonnet-5-5", "prompt": "yes, make it 0.8"}
 {"date": "18.10 16:25", "model_id": "claude-sonnet-5-5", "prompt": "Fix @evaluation/test-runner.ts to put results for failures on a new line answer and expected : @17-10-2026--16-25-21.json (133-135) "}
+{"date": "18.10 16:29", "model_id": "claude-sonnet-5-5", "prompt": "@app/api/search/service.ts:28-44 Can we split that on the top of the file so the more readable"}
+{"date": "18.10 16:42", "model_id": "claude-sonnet-5-5", "prompt": "Give example for tokenize"}
+{"date": "18.10 16:43", "model_id": "claude-sonnet-5-5", "prompt": "ok but should we split $27.7B to 27 and 7b"}
+{"date": "18.10 16:44", "model_id": "claude-sonnet-5-5", "prompt": "yes, apply this change"}
+{"date": "18.10 16:45", "model_id": "claude-sonnet-5-5", "prompt": "is tokenize the most accurate termin, change to something more suitable"}
+{"date": "18.10 16:45", "model_id": "claude-sonnet-5-5", "prompt": "normalize"}
+{"date": "18.10 16:46", "model_id": "claude-sonnet-5-5", "prompt": "@app/api/search/vector-search.ts:42 Why need Set since it is one item only?"}
+{"date": "18.10 16:52", "model_id": "claude-sonnet-5-5", "prompt": "@app/api/search/graph-search.ts:9 Does searchGraph need to return articleId, do we use it somewhere returned from this function"}
