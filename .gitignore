@@ -12,7 +12,6 @@
 
 # testing
 /coverage
-/evaluation/results/*
 !/evaluation/results/.gitkeep
 
 # next.js

@@ -76,12 +76,13 @@ flowchart TD
     API --> HybridSearch["Vector & Text Search"]
 
     subgraph Graph Retrieval
-        GraphSearch --> ExtractEntities["Extract names & concepts from query"]
-        ExtractEntities --> MatchGraph["Find matching entities & facts in Graph"]
+        GraphSearch --> ExtractEntities["1. Extract names & predicates from query<br/><i>(gpt-6.1-sol, predicates from graph vocabulary)</i>"]
+        ExtractEntities --> MapNodes["2. Map names to graph nodes<br/><i>(gpt-6.1-sol)</i>"]
+        MapNodes --> MatchGraph["3. Search graph<br/><i>edges of matched nodes, filtered by predicates, top 30</i>"]
     end
 
     subgraph Hybrid Search
-        HybridSearch --> Semantic["Dense Search<br/><i>(Vector Similarity)</i>"]
+        HybridSearch --> Semantic["Dense Search<br/><i>(Vector Similarity)</i><br/><i>(HNSW, cosine, 1536 dims)</i>"]
         HybridSearch --> Keyword["Sparse Search<br/><i>(BM25 Keyword Match)</i>"]
         Semantic --> Combine["Reciprocal Rank Fusion<br/><i>score = Σ 1 / (60 + rank)</i><br/><i>(Fuse top 20 from each, keep top 5)</i>"]
         Keyword --> Combine

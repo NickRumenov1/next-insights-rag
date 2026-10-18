@@ -1,6 +1,16 @@
 import { graph, vocabulary } from "../articles/[articleId]/process/graph-process";
 import { promptForJson } from "./service";
 
+/** Maps the question onto graph node ids (named entities) and graph predicates (relations it asks about). */
+export async function matchEntities(query: string): Promise<{ entities: string[]; predicates: string[] }> {
+  if (graph.order === 0) return { entities: [], predicates: [] };
+
+  const { names, predicates } = await extractQuery(query);
+  const entities = names.length === 0 ? [] : await mapNamesToNodes(names);
+  return { entities: [...new Set(entities)].filter((name) => graph.hasNode(name)), predicates };
+}
+
+
 export function searchGraph(entities: string[], predicates: string[], limit = 30): { text: string }[] {
   const wanted = new Set(predicates);
   if (entities.length === 0 && wanted.size === 0) return [];
@@ -23,15 +33,6 @@ export function searchGraph(entities: string[], predicates: string[], limit = 30
       const text = `${label(subject)} ${String(predicate).replaceAll("_", " ")} ${what}${date ? `, ${date}` : ""}`;
       return { text: negated ? `NOT TRUE (the article denies it): ${text}` : text };
     });
-}
-
-/** Maps the question onto graph node ids (named entities) and graph predicates (relations it asks about). */
-export async function matchEntities(query: string): Promise<{ entities: string[]; predicates: string[] }> {
-  if (graph.order === 0) return { entities: [], predicates: [] };
-
-  const { names, predicates } = await extractQuery(query);
-  const entities = names.length === 0 ? [] : await mapNamesToNodes(names);
-  return { entities: [...new Set(entities)].filter((name) => graph.hasNode(name)), predicates };
 }
 
 /** GPT step 1: names alone, so the node list can't pull in entities the question never wrote. Predicates come from the graph's own vocabulary. */
