@@ -1,8 +1,6 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 
-export type ArticleKind = "txt";
-
 export class HttpError extends Error {
   constructor(
     message: string,
@@ -13,10 +11,6 @@ export class HttpError extends Error {
 }
 
 export const ARTICLES_DIR = path.join(process.cwd(), "data", "articles");
-
-export function articleKind(filename: string): ArticleKind | null {
-  return filename.toLowerCase().endsWith(".txt") ? "txt" : null;
-}
 
 export function textFromBytes(bytes: Buffer): string {
   return bytes.toString("utf8").replace(/^\uFEFF/, "");
@@ -65,8 +59,6 @@ export async function listArticles(): Promise<StoredArticle[]> {
 }
 
 async function readStoredText(filePath: string): Promise<string> {
-  const kind = articleKind(filePath);
-  if (!kind) return "";
   try {
     return textFromBytes(await readFile(filePath));
   } catch {

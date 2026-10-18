@@ -1,10 +1,10 @@
 import { HttpError } from "../service";
-import { createArticle } from "./service";
+import { createArticles } from "./service";
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json().catch(() => null)) as { text?: unknown } | null;
-    return Response.json({ article: await createArticle(body) });
+    const body = (await request.json().catch(() => null)) as { articles?: { text?: unknown }[] } | null;
+    return Response.json({ articles: await createArticles(body) });
   } catch (error) {
     if (error instanceof HttpError) {
       return Response.json({ error: error.message }, { status: error.status });

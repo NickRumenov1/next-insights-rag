@@ -1,6 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { ARTICLES_DIR, articleKind, HttpError, textFromBytes } from "../../service";
+import { ARTICLES_DIR, HttpError, textFromBytes } from "../../service";
 import { indexForGraph } from "./graph-process";
 import { indexForVector } from "./vector-process";
 
@@ -17,8 +17,7 @@ async function readArticle(id: string): Promise<{ id: string; name: string; text
     name: string;
   };
   const sourceName = (await readdir(directory)).find((name) => name !== "article.json");
-  const kind = sourceName ? articleKind(sourceName) : null;
-  if (!sourceName || !kind) throw new HttpError("Article file not found.", 404);
+  if (!sourceName) throw new HttpError("Article file not found.", 404);
 
   const text = textFromBytes(await readFile(path.join(directory, sourceName)));
   if (!text.trim()) throw new HttpError("The article has no text.", 422);

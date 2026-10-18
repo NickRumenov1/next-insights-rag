@@ -22,7 +22,8 @@ async function call(apiPath: string, method: string, body?: unknown) {
 async function runCase(test: (typeof testCases)[number]) {
   await call("/api/delete", "DELETE");
   for (const article of test.articles) {
-    const { article: saved } = await call("/api/articles/create", "POST", { title: article.name, text: article.text });
+    const { articles } = await call("/api/articles/create", "POST", { articles: [{ text: article.text }] });
+    const saved = articles[0];
     await call(`/api/articles/${saved.id}/process`, "POST");
   }
 

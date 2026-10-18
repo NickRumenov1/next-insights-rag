@@ -1,6 +1,6 @@
 import { HierarchicalNSW } from "hnswlib-node";
 import { existsSync } from "node:fs";
-import { embedChunks, INDEX_FILE, readChunks, type Chunk } from "../articles/[articleId]/process/vector-process";
+import { getEmbeddingsByChunks, INDEX_FILE, readChunks, type Chunk } from "../articles/[articleId]/process/vector-process";
 
 /** Hybrid search: dense (hnsw) + sparse (BM25), fused with Reciprocal Rank Fusion. */
 export async function searchVectors(query: string, k = 5): Promise<Chunk[]> {
@@ -9,7 +9,7 @@ export async function searchVectors(query: string, k = 5): Promise<Chunk[]> {
 
   const index = new HierarchicalNSW("cosine", 1536);
   index.readIndexSync(INDEX_FILE);
-  const [embedding] = await embedChunks([{ id: "query", articleId: "", index: 0, text: query }]);
+  const [embedding] = await getEmbeddingsByChunks([{ id: "query", articleId: "", index: 0, text: query }]);
   const dense = index.searchKnn(embedding, Math.min(20, index.getCurrentCount())).neighbors;
   const sparse = bm25Rank(query, chunks).slice(0, 20);
 

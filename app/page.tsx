@@ -87,14 +87,14 @@ export default function Home() {
       const response = await fetch("/api/articles/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: articleText }),
+        body: JSON.stringify({ articles: [{ text: articleText }] }),
       });
-      const payload = (await response.json()) as { error?: string; article?: ArticleItem };
-      if (!response.ok || !payload.article) {
+      const payload = (await response.json()) as { error?: string; articles?: ArticleItem[] };
+      if (!response.ok || !payload.articles?.[0]) {
         setError(payload.error ?? "Could not save the article.");
         return;
       }
-      const saved = payload.article;
+      const saved = payload.articles[0];
       setArticles((current) => [...current, saved]);
       setArticleText("");
 

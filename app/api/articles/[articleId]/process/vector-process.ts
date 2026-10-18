@@ -16,7 +16,7 @@ const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 800, chunkOverl
 export async function indexForVector(articleId: string, text: string): Promise<void> {
   const chunks = await splitText(articleId, text);
 
-  const embeddings = await embedChunks(chunks);
+  const embeddings = await getEmbeddingsByChunks(chunks);
   await storeEmbeddings(embeddings, chunks);
 }
 
@@ -30,6 +30,16 @@ async function splitText(articleId: string, text: string): Promise<Chunk[]> {
   }));
 }
 
+export async function getEmbeddingsByChunks(chunks: Chunk[]): Promise<number[][]> {
+  if (chunks.length === 0) return [];
+  const openai = new OpenAI();
+  const res = await openai.embeddings.create({
+    model: "text-embedding-3-small",
+    input: chunks.map(({text}) => text),
+  });
+  return res.data.map(({embedding}) => embedding);
+}
+
 export async function readChunks(): Promise<Chunk[]> {
   return existsSync(CHUNKS_FILE) ? (JSON.parse(await readFile(CHUNKS_FILE, "utf8")) as Chunk[]) : [];
 }
@@ -37,7 +47,7 @@ export async function readChunks(): Promise<Chunk[]> {
 async function storeEmbeddings(embeddings: number[][], chunks: Chunk[]) {
   await mkdir(VECTOR_DIR, { recursive: true });
 
-  const index = new HierarchicalNSW("cosine", 1536); // text-embedding-3-small
+  const index = new HierarchicalNSW("cosine", 1536);
   if (existsSync(INDEX_FILE)) index.readIndexSync(INDEX_FILE);
   else index.initIndex(1000);
 
@@ -48,15 +58,4 @@ async function storeEmbeddings(embeddings: number[][], chunks: Chunk[]) {
 
   index.writeIndexSync(INDEX_FILE);
   await writeFile(CHUNKS_FILE, JSON.stringify([...(await readChunks()), ...chunks]));
-}
-
-// TODO - This is also embedding on search so need to reflect it in the diagram for the query
-export async function embedChunks(chunks: Chunk[]): Promise<number[][]> {
-  if (chunks.length === 0) return [];
-  const openai = new OpenAI();
-  const res = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: chunks.map((c) => c.text),
-  });
-  return res.data.map((d) => d.embedding);
 }

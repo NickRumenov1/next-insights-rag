@@ -2,10 +2,19 @@ import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { ARTICLES_DIR, HttpError } from "../service";
 
-export async function createArticle(body: { text?: unknown } | null) {
-  const text = typeof body?.text === "string" ? body.text : "";
-  if (!text.trim()) throw new HttpError("Enter the article text.", 400);
+export async function createArticles(body: { articles?: { text?: unknown }[] } | null) {
+  const items = Array.isArray(body?.articles) ? body.articles : [];
+  const texts = items.map((item) => (typeof item?.text === "string" ? item.text : ""));
+  if (texts.length === 0 || texts.some((text) => !text.trim())) {
+    throw new HttpError("Enter the article text.", 400);
+  }
 
+  const articles = [];
+  for (const text of texts) articles.push(await createArticle(text));
+  return articles;
+}
+
+async function createArticle(text: string) {
   const id = await nextShortId();
   const name = `${id}.txt`;
   const directory = path.join(ARTICLES_DIR, id);
