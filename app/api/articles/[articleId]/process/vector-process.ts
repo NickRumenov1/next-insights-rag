@@ -6,7 +6,7 @@ import path from "node:path";
 import OpenAI from "openai";
 
 export const VECTOR_DIR = path.join(process.cwd(), "data", "vectors");
-export const INDEX_FILE = path.join(VECTOR_DIR, "index.dat");
+export const VECTOR_INDEX_FILE = path.join(VECTOR_DIR, "index.dat");
 const CHUNKS_FILE = path.join(VECTOR_DIR, "chunks.json");
 
 export type Chunk = { id: string; articleId: string; index: number; text: string };
@@ -48,7 +48,7 @@ async function storeEmbeddings(embeddings: number[][], chunks: Chunk[]) {
   await mkdir(VECTOR_DIR, { recursive: true });
 
   const index = new HierarchicalNSW("cosine", 1536);
-  if (existsSync(INDEX_FILE)) index.readIndexSync(INDEX_FILE);
+  if (existsSync(VECTOR_INDEX_FILE)) index.readIndexSync(VECTOR_INDEX_FILE);
   else index.initIndex(1000);
 
   const needed = index.getCurrentCount() + embeddings.length;
@@ -56,6 +56,6 @@ async function storeEmbeddings(embeddings: number[][], chunks: Chunk[]) {
 
   for (const embedding of embeddings) index.addPoint(embedding, index.getCurrentCount());
 
-  index.writeIndexSync(INDEX_FILE);
+  index.writeIndexSync(VECTOR_INDEX_FILE);
   await writeFile(CHUNKS_FILE, JSON.stringify([...(await readChunks()), ...chunks]));
 }

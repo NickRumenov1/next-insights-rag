@@ -34,7 +34,6 @@ export async function search(query: string) {
   return answerFromEvidence(query, evidence, entities);
 }
 
-/** One GPT call judges the merged evidence; code then keeps only citations that exist. */
 async function answerFromEvidence(query: string, evidence: Evidence[], entities: string[]) {
   const verdict = await promptForJson<{ verdict?: string; answer?: string; evidenceIds?: string[] }>(
     ANSWER_PROMPT,

@@ -58,8 +58,8 @@ flowchart TD
     end
 
     subgraph Knowledge Graph Pipeline
-        GraphPipeline --> Vocab["Load vocabulary from the graph<br/><i>(top 100 entity types & predicates, generic seeds as fallback)</i>"]
-        Vocab --> Facts["Extract facts & triples<br/><i>(OpenAI gpt-6.1-sol)</i><br/><i>reuses vocabulary terms, adds new ones only if none fits</i>"]
+        GraphPipeline --> Vocab["Load vocabulary from the graph<br/><i>(top 200 entity types & predicates)</i>"]
+        Vocab --> Facts["Extract facts & triples<br/><i>(OpenAI gpt-6.1-sol)</i><br/><i>reuses vocabulary terms</i>"]
         Facts --> SaveGraph["Save entities & relationships<br/><i>(graphology in-memory MultiDirectedGraph)</i>"]
         SaveGraph -. "new types & predicates grow the vocabulary<br/>for the next articles" .-> Vocab
     end

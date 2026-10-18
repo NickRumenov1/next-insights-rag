@@ -1,11 +1,6 @@
 import { graph, vocabulary } from "../articles/[articleId]/process/graph-process";
 import { promptForJson } from "./service";
 
-/**
- * Facts as plain sentences, so the reader sees direction, negation, date and sector.
- * With entities: every edge touching them (either direction). Without: every edge with one of the predicates.
- * A non-empty predicates list narrows both.
- */
 export function searchGraph(entities: string[], predicates: string[], limit = 30): { text: string }[] {
   const wanted = new Set(predicates);
   if (entities.length === 0 && wanted.size === 0) return [];

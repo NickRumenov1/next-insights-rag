@@ -48,16 +48,15 @@ export async function indexForGraph(articleId: string, text: string): Promise<vo
   const facts = (await extractFacts(text)).filter((f) => f.subject && f.predicate && (f.object || f.value));
 
   for (const fact of facts) {
-    console.log('new fact: ', fact);
 
     // Merge subject and object nodes; skip the object if there isn't one.
-    // Example: "Salesforce acquired Slack"
+    // Example with object: "Salesforce acquired Slack"
     //   fact.subject = "Salesforce"
     //   fact.subjectType = "organization", fact.subjectSector = "CRM"
     //   fact.object = "Slack"
     //   fact.objectType = "organization", fact.objectSector = "messaging"
     //
-    // Example: "Acme reported revenue of $12.3B"
+    // Example without object: "Acme reported revenue of $12.3B"
     //   fact.subject = "Acme"
     //   fact.subjectType = "organization", fact.subjectSector = "finance"
     //   fact.object = undefined, fact.objectType = undefined, fact.objectSector = undefined
@@ -107,10 +106,10 @@ export function vocabulary() {
 }
 
 async function extractFacts(text: string): Promise<Fact[]> {
-  const openai = new OpenAI(); // Created lazily so a missing OPENAI_API_KEY doesn't fail at import time.
+  const openai = new OpenAI();
   const { entityTypes, predicates } = vocabulary();
   const res = await openai.chat.completions.create({
-    model: "gpt-6-luna",
+    model: process.env.OPENAI_MODEL ?? "gpt-6.1-sol",
     response_format: { type: "json_object" },
     messages: [
       {

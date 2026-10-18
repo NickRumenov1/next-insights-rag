@@ -1,28 +1,28 @@
 import { HierarchicalNSW } from "hnswlib-node";
 import { existsSync } from "node:fs";
-import { getEmbeddingsByChunks, INDEX_FILE, readChunks, type Chunk } from "../articles/[articleId]/process/vector-process";
+import { getEmbeddingsByChunks, VECTOR_INDEX_FILE, readChunks, type Chunk } from "../articles/[articleId]/process/vector-process";
 
-/** Cosine distance above which a dense hit counts as unrelated (kNN always returns neighbours, however far). */
-const MAX_DISTANCE = 0.8;
+const DENSE_MAX_DISTANCE = 0.8;
 
 /** Hybrid search: dense (hnsw) + sparse (BM25), fused with Reciprocal Rank Fusion. */
 export async function searchVectors(query: string, k = 5): Promise<Chunk[]> {
   const chunks = await readChunks();
-  if (chunks.length === 0 || !existsSync(INDEX_FILE)) return [];
+  if (chunks.length === 0 || !existsSync(VECTOR_INDEX_FILE)) return [];
+
+  const sparse = bm25Rank(query, chunks).slice(0, 20);
 
   const vectorIndex = new HierarchicalNSW("cosine", 1536);
-  vectorIndex.readIndexSync(INDEX_FILE);
-  const [embedding] = await getEmbeddingsByChunks([{ id: "query", articleId: "", index: 0, text: query }]);
+  vectorIndex.readIndexSync(VECTOR_INDEX_FILE);
+  const queryChunks: Chunk[] = [{ id: "query", articleId: "", index: 0, text: query }];
+  const [embedding] = await getEmbeddingsByChunks(queryChunks);
   const { neighbors, distances } = vectorIndex.searchKnn(embedding, Math.min(20, vectorIndex.getCurrentCount()));
-  const dense = neighbors.filter((_, rank) => distances[rank] <= MAX_DISTANCE);
-  const sparse = bm25Rank(query, chunks).slice(0, 20);
+  const dense = neighbors.filter((_, rank) => distances[rank] <= DENSE_MAX_DISTANCE);
 
   return reciprocalRankFusion([dense, sparse], k).map((position) => chunks[position]);
 }
 
 const normalize = (text: string): string[] => text.toLowerCase().match(/[a-z0-9]+(?:[.,](?=\d)[a-z0-9]+)*/g) ?? [];
 
-/** BM25 (k1 = 1.5, b = 0.75). Returns chunk positions ranked best-first, matches only. */
 function bm25Rank(query: string, chunks: Chunk[]): number[] {
   const docs = chunks.map((chunk) => normalize(chunk.text));
   const avgLength = docs.reduce((sum, doc) => sum + doc.length, 0) / docs.length;
@@ -55,9 +55,10 @@ function bm25Rank(query: string, chunks: Chunk[]): number[] {
  * @returns Up to `k` ids ordered by fused score, best-first.
  *
  * @example
- * // Item A is 2nd in the first list and 1st in the second; Item B is 1st and 3rd.
- * // 1 -> 1/62 + 1/61 ≈ 0.0325, 3 -> 1/61 + 1/63 ≈ 0.0323, 5 -> 1/62 ≈ 0.0161, 7 -> 1/63 ≈ 0.0159
- * reciprocalRankFusion([[3, 1, 7], [1, 5, 3]], 3); // [1, 3, 5]
+ * // Item 1 is 2nd in the first list and 1st in the second; item 3 is 1st and 3rd.
+ * // 1 -> 1/62 + 1/61 ≈ 0.0325, 3 -> 1/61 + 1/63 ≈ 0.0323, 5 -> 1/62 ≈ 0.0161,
+ * // 7 -> 1/63 ≈ 0.0159, 9 -> 1/64 ≈ 0.0156, 2 -> 1/65 ≈ 0.0154 (cut off by k = 5)
+ * reciprocalRankFusion([[3, 1, 7, 9, 2], [1, 5, 3]], 5); // [1, 3, 5, 7, 9]
  *
  * @example
  * // An item present in only one list can still win if nothing else beats it.
