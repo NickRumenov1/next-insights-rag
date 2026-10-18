@@ -1,6 +1,6 @@
 import { HierarchicalNSW } from "hnswlib-node";
 import { existsSync } from "node:fs";
-import { getEmbeddingsByChunks, VECTOR_INDEX_FILE, readChunks, type Chunk } from "../articles/[articleId]/process/vector-process";
+import { getEmbeddingsByChunks, VECTOR_INDEX_FILE, readChunks, type Chunk } from "../process/[articleId]/vector-process";
 
 const DENSE_MAX_DISTANCE = 0.8;
 

@@ -1,4 +1,4 @@
-import { HttpError } from "../../service";
+import { HttpError } from "../../../storage/articles/service";
 import { processArticle } from "./service";
 
 export async function POST(

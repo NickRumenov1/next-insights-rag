@@ -1,4 +1,4 @@
-import { graph, vocabulary } from "../articles/[articleId]/process/graph-process";
+import { graph, vocabulary } from "../process/[articleId]/graph-process";
 import { promptForJson } from "./service";
 
 /** Maps the question onto graph node ids (named entities) and graph predicates (relations it asks about). */

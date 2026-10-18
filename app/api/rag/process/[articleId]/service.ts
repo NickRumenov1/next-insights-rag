@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { ARTICLES_DIR, HttpError, textFromBytes } from "../../service";
+import { ARTICLES_DIR, HttpError, textFromBytes } from "../../../storage/articles/service";
 import { indexForGraph } from "./graph-process";
 import { indexForVector } from "./vector-process";
 

@@ -33,11 +33,14 @@ Knowledge Graph: `graphology`
 
 ## API
 
-- `GET /api/articles` - List all articles
-- `POST /api/articles/create` - Create one or more articles from text
-- `POST /api/articles/[articleId]/process` - Process an article (extract & store graph/vectors/chunks)
-- `POST /api/search` - Search through processed articles using query
-- `DELETE /api/delete` - Delete all articles, graph and vectors
+RAG
+- `POST /api/rag/process/[articleId]` - Process an article (extract & store graph/vectors/chunks)
+- `POST /api/rag/search` - Search through processed articles using query
+
+Storage
+- `GET /api/storage/articles` - List all articles
+- `POST /api/storage/articles/create` - Create one or more articles from text
+- `DELETE /api/storage/delete` - Delete all articles, graph and vectors
 
 ## Diagrams
 

@@ -1,6 +1,6 @@
 // Runs evaluation/test-cases.ts against a running dev server (npm run dev).
 //   node --env-file=.env.local evaluation/test-runner.ts [T-001 T-014 ...]
-// WARNING: every case first calls DELETE /api/delete, which wipes all stored articles, vectors and the graph.
+// WARNING: every case first calls DELETE /api/storage/delete, which wipes all stored articles, vectors and the graph.
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { scoreCase } from "./metrics.ts";
@@ -20,13 +20,13 @@ async function call(apiPath: string, method: string, body?: unknown) {
 }
 
 async function runCase(test: (typeof testCases)[number]) {
-  await call("/api/delete", "DELETE");
+  await call("/api/storage/delete", "DELETE");
   for (const article of test.articles) {
-    const { articles } = await call("/api/articles/create", "POST", { articles: [{ text: article.text }] });
-    await call(`/api/articles/${articles[0].id}/process`, "POST");
+    const { articles } = await call("/api/storage/articles/create", "POST", { articles: [{ text: article.text }] });
+    await call(`/api/rag/process/${articles[0].id}`, "POST");
   }
 
-  const { answer } = (await call("/api/search", "POST", { query: test.query })) as { answer: string };
+  const { answer } = (await call("/api/rag/search", "POST", { query: test.query })) as { answer: string };
   return scoreCase(test, answer);
 }
 

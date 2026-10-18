@@ -35,7 +35,7 @@ export default function Home() {
   const [saving, setSaving] = useState(false);
 
   async function fetchArticles(): Promise<ArticleItem[]> {
-    const response = await fetch("/api/articles").catch(() => null);
+    const response = await fetch("/api/storage/articles").catch(() => null);
     if (!response?.ok) return [];
     const payload = (await response.json()) as { articles?: ArticleItem[] };
     return payload.articles ?? [];
@@ -51,7 +51,7 @@ export default function Home() {
     setSearching(true);
 
     try {
-      const response = await fetch("/api/search", {
+      const response = await fetch("/api/rag/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
@@ -75,7 +75,7 @@ export default function Home() {
     setSaving(true);
 
     try {
-      const response = await fetch("/api/articles/create", {
+      const response = await fetch("/api/storage/articles/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ articles: [{ text: articleText }] }),
@@ -88,7 +88,7 @@ export default function Home() {
       setArticleText("");
       setArticles(await fetchArticles());
 
-      const processed = await fetch(`/api/articles/${payload.articles[0].id}/process`, { method: "POST" });
+      const processed = await fetch(`/api/rag/process/${payload.articles[0].id}`, { method: "POST" });
       const failure = (await processed.json().catch(() => null)) as { error?: string } | null;
       if (!processed.ok) {
         setError(failure?.error ?? "Could not process that article.");
@@ -104,7 +104,7 @@ export default function Home() {
     setError(null);
 
     try {
-      const response = await fetch("/api/delete", { method: "DELETE" });
+      const response = await fetch("/api/storage/delete", { method: "DELETE" });
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { error?: string } | null;
         setError(payload?.error ?? "Could not delete the articles.");
