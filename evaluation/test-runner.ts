@@ -23,8 +23,7 @@ async function runCase(test: (typeof testCases)[number]) {
   await call("/api/delete", "DELETE");
   for (const article of test.articles) {
     const { articles } = await call("/api/articles/create", "POST", { articles: [{ text: article.text }] });
-    const saved = articles[0];
-    await call(`/api/articles/${saved.id}/process`, "POST");
+    await call(`/api/articles/${articles[0].id}/process`, "POST");
   }
 
   const { answer } = (await call("/api/search", "POST", { query: test.query })) as { answer: string };
@@ -43,7 +42,7 @@ for (const test of cases) {
   try {
     const failures = await runCase(test);
     const passed = failures.length === 0;
-    results.push({ id: test.id, passed, failures });
+    results.push({ id: test.id, passed, failures: failures.flatMap((line) => line.split("\n")) });
     console.log(`${passed ? green("PASS") : red("FAIL")} ${test.id} ${test.query}`);
     for (const line of failures) for (const row of line.split("\n")) console.log(red(`     ${row}`));
   } catch (error) {

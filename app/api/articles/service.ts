@@ -27,7 +27,7 @@ export async function listArticles(): Promise<StoredArticle[]> {
   try {
     ids = await readdir(ARTICLES_DIR);
   } catch (error) {
-    console.error(error);
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") console.error(error);
     return [];
   }
 

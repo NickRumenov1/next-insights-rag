@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { ARTICLES_DIR, HttpError, textFromBytes } from "../../service";
@@ -10,9 +11,9 @@ export async function processArticle(articleId: string): Promise<void> {
 }
 
 async function readArticle(id: string): Promise<{ id: string; name: string; text: string }> {
-  if (!/^[1-9]\d*$/.test(id)) throw new HttpError("Invalid article id.", 400);
-
   const directory = path.join(ARTICLES_DIR, id);
+  if (!existsSync(directory)) throw new HttpError("Article not found.", 404);
+
   const meta = JSON.parse(await readFile(path.join(directory, "article.json"), "utf8")) as {
     name: string;
   };

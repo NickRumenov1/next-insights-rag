@@ -1,49 +1,32 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import OpenAI from "openai";
-import { ARTICLES_DIR } from "../articles/service";
 import { matchEntities, searchGraph } from "./graph-search";
 import { searchVectors } from "./vector-search";
 
 /** One normalized piece of support: a graph fact rendered as a sentence, or a vector chunk. */
-type Evidence = { id: string; articleId: string; source: "Graph" | "RAG"; text: string };
+type Evidence = { id: string; text: string };
 
 export async function search(query: string) {
+
   const [chunks, { entities, predicates }] = await Promise.all([searchVectors(query), matchEntities(query)]);
 
-  console.group("Matched on Search");
-  console.table(entities.map((entity) => ({entity})));
-  console.table(predicates.map((p) => ({Predicates: p})));
-  console.table(chunks.map(({id, articleId, index, text}) => ({Chunks: id, articleId, index, text})));
-  console.groupEnd();
+  console.log('chucks', chunks);
+  console.log('entities: ', entities);
+  console.log('predicates', predicates);
 
   const evidence: Evidence[] = [
-    ...searchGraph(entities, predicates).map((item) => ({ ...item, source: "Graph" as const })),
-    ...chunks.map(({ articleId, text }) => ({ articleId, text, source: "RAG" as const })),
-  ].map((item, position) => ({ ...item, id: `E${position + 1}` }));
+    ...searchGraph(entities, predicates),
+    ...chunks,
+  ].map(({ text }, position) => ({ id: `E${position + 1}`, text }));
+
+  console.table(evidence)
 
   return answerFromEvidence(query, evidence, entities);
 }
 
-export async function promptForJson<T = Record<string, string[]>>(system: string, user: string) {
-  const openai = new OpenAI();
-  const res = await openai.chat.completions.create({
-    model: process.env.OPENAI_MODEL ?? "gpt-6.1-sol",
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ],
-  });
-  return JSON.parse(res.choices[0]?.message.content ?? "{}") as T;
-}
-
-const NO_ANSWER = "No article states the answer to the question.";
-
-/** One GPT call judges the merged evidence; code then keeps only citations that exist and builds the sources. */
+/** One GPT call judges the merged evidence; code then keeps only citations that exist. */
 async function answerFromEvidence(query: string, evidence: Evidence[], entities: string[]) {
   const verdict = await promptForJson<{ verdict?: string; answer?: string; evidenceIds?: string[] }>(
-    `Answer the question using only the numbered evidence. Evidence is a graph fact ([Graph], a sentence; a word in parentheses after an entity is its sector) or an article excerpt ([RAG]).
+    `Answer the question using only the numbered evidence. Evidence is a graph fact (a sentence; a word in parentheses after an entity is its sector) or an article excerpt.
     Reply with JSON: {"verdict": "answer" | "conflict" | "none", "answer": "<one short sentence, or the conflict format below>", "evidenceIds": ["E1"]}.
     Rules:
     - Use only what the evidence explicitly states. Hopes, speculation and "might someday" support nothing.
@@ -57,7 +40,7 @@ async function answerFromEvidence(query: string, evidence: Evidence[], entities:
     - "Matched entities" are the question's entities resolved to graph names (a misspelling is already corrected). Treat them as the entities the question asks about.
     - When the evidence does not state the answer: verdict "none", evidenceIds [], answer exactly "No article states <the answer to the question>." using the question's own wording and names (e.g. "No article states which company acquired Stack.").
     - evidenceIds lists only the evidence the answer actually rests on.`,
-    `Evidence:\n${evidence.map((item) => `${item.id} [${item.source}]: ${item.text}`).join("\n")}\n\nMatched entities: ${entities.join(", ") || "none"}\n\nQuestion: ${query}`,
+    `Evidence:\n${evidence.map((item) => `${item.id}: ${item.text}`).join("\n")}\n\nMatched entities: ${entities.join(", ") || "none"}\n\nQuestion: ${query}`,
   );
 
   const ids = new Set(evidence.map((item) => item.id));
@@ -65,25 +48,21 @@ async function answerFromEvidence(query: string, evidence: Evidence[], entities:
   const none = verdict.verdict === "none" || cited.length === 0;
   if (none) {
     const answer = verdict.answer?.trim() ?? "";
-    return { answer: answer.startsWith("No article states") ? answer : NO_ANSWER, sources: [] };
+    return { answer: answer.startsWith("No article states") ? answer : "No article states the answer to the question." };
   }
 
-  // One entry per cited article; Graph wins when both a fact and an excerpt of it were cited.
-  const labels = new Map<string, "Graph" | "RAG">();
-  for (const item of evidence.filter((item) => cited.includes(item.id))) {
-    if (item.source === "Graph" || !labels.has(item.articleId)) labels.set(item.articleId, item.source);
-  }
-  const sources = await Promise.all(
-    [...labels].map(async ([articleId, source]) => ({ articleId, name: await articleName(articleId), source })),
-  );
-  return { answer: verdict.answer?.trim() ?? "", sources };
+  return { answer: verdict.answer?.trim() ?? "" };
 }
 
-async function articleName(articleId: string): Promise<string> {
-  try {
-    const { name } = JSON.parse(await readFile(path.join(ARTICLES_DIR, articleId, "article.json"), "utf8")) as { name: string };
-    return name.replace(/\.txt$/i, "");
-  } catch {
-    return articleId;
-  }
+export async function promptForJson<T = Record<string, string[]>>(system: string, user: string) {
+  const openai = new OpenAI();
+  const res = await openai.chat.completions.create({
+    model: process.env.OPENAI_MODEL ?? "gpt-6.1-sol",
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+  });
+  return JSON.parse(res.choices[0]?.message.content ?? "{}") as T;
 }

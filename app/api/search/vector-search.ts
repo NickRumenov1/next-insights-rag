@@ -2,6 +2,9 @@ import { HierarchicalNSW } from "hnswlib-node";
 import { existsSync } from "node:fs";
 import { getEmbeddingsByChunks, INDEX_FILE, readChunks, type Chunk } from "../articles/[articleId]/process/vector-process";
 
+/** Cosine distance above which a dense hit counts as unrelated (kNN always returns neighbours, however far). */
+const MAX_DISTANCE = 0.8;
+
 /** Hybrid search: dense (hnsw) + sparse (BM25), fused with Reciprocal Rank Fusion. */
 export async function searchVectors(query: string, k = 5): Promise<Chunk[]> {
   const chunks = await readChunks();
@@ -10,7 +13,8 @@ export async function searchVectors(query: string, k = 5): Promise<Chunk[]> {
   const index = new HierarchicalNSW("cosine", 1536);
   index.readIndexSync(INDEX_FILE);
   const [embedding] = await getEmbeddingsByChunks([{ id: "query", articleId: "", index: 0, text: query }]);
-  const dense = index.searchKnn(embedding, Math.min(20, index.getCurrentCount())).neighbors;
+  const { neighbors, distances } = index.searchKnn(embedding, Math.min(20, index.getCurrentCount()));
+  const dense = neighbors.filter((_, rank) => distances[rank] <= MAX_DISTANCE);
   const sparse = bm25Rank(query, chunks).slice(0, 20);
 
   return reciprocalRankFusion([dense, sparse], k).map((position) => chunks[position]);

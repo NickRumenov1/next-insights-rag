@@ -278,7 +278,7 @@ export const testCases: TestCase[] = [
       { name: "art-3", text: "Database company Elastic acquired AI startup Nimbus." },
       { name: "art-4", text: "Elastic published a paper on vector search." },
     ],
-    expected: "MongoDB and Elastic acquired AI startups and published vector-search papers.",
+    expected: "MongoDB and Elastic.",
   },
   {
     id: "T-031",

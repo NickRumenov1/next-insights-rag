@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-type SourceItem = { articleId: string; name: string; source: "Graph" | "RAG" };
-
 type ArticleItem = {
   id: string;
   name: string;
@@ -30,27 +28,21 @@ if (browser && !browser.__printApiLogs) {
 export default function Home() {
   const [query, setQuery] = useState("");
   const [answer, setAnswer] = useState("");
-  const [sources, setSources] = useState<SourceItem[]>([]);
   const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [searching, setSearching] = useState(false);
   const [articleText, setArticleText] = useState("");
   const [saving, setSaving] = useState(false);
 
+  async function fetchArticles(): Promise<ArticleItem[]> {
+    const response = await fetch("/api/articles").catch(() => null);
+    if (!response?.ok) return [];
+    const payload = (await response.json()) as { articles?: ArticleItem[] };
+    return payload.articles ?? [];
+  }
+
   useEffect(() => {
-    let cancelled = false;
-
-    void fetch("/api/articles")
-      .then(async (response) => {
-        if (!response.ok) return;
-        const payload = (await response.json()) as { articles?: ArticleItem[] };
-        if (!cancelled) setArticles(payload.articles ?? []);
-      })
-      .catch(() => {});
-
-    return () => {
-      cancelled = true;
-    };
+    void fetchArticles().then(setArticles);
   }, []);
 
   async function onSearch(event: React.FormEvent<HTMLFormElement>) {
@@ -64,13 +56,12 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
       });
-      const payload = (await response.json()) as { answer?: string; sources?: SourceItem[]; error?: string };
+      const payload = (await response.json()) as { answer?: string; error?: string };
       if (!response.ok) {
         setError(payload.error ?? "Could not search the articles.");
         return;
       }
       setAnswer(payload.answer ?? "");
-      setSources(payload.sources ?? []);
     } catch {
       setError("Could not search the articles.");
     } finally {
@@ -94,11 +85,10 @@ export default function Home() {
         setError(payload.error ?? "Could not save the article.");
         return;
       }
-      const saved = payload.articles[0];
-      setArticles((current) => [...current, saved]);
       setArticleText("");
+      setArticles(await fetchArticles());
 
-      const processed = await fetch(`/api/articles/${saved.id}/process`, { method: "POST" });
+      const processed = await fetch(`/api/articles/${payload.articles[0].id}/process`, { method: "POST" });
       const failure = (await processed.json().catch(() => null)) as { error?: string } | null;
       if (!processed.ok) {
         setError(failure?.error ?? "Could not process that article.");
@@ -159,11 +149,6 @@ export default function Home() {
             {answer ? (
               <p className="whitespace-pre-wrap text-base leading-7 text-zinc-100">{answer}</p>
             ) : null}
-            {sources.length > 0 ? (
-              <p className="mt-auto pt-4 text-sm text-zinc-400 border-t border-zinc-800/80">
-                {sources.map((item) => `${item.name}.txt [${item.source}]`).join(", ")}
-              </p>
-            ) : null}
           </section>
         </div>
         <div className="flex w-full flex-col rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-sm">
@@ -209,7 +194,6 @@ export default function Home() {
               key={item.id}
               className="flex flex-col gap-2 rounded-lg border border-zinc-800 bg-zinc-950/90 p-4"
             >
-              <p className="text-xs font-semibold text-zinc-400 border-b border-zinc-800/60 pb-1.5">{item.name}</p>
               <p className="whitespace-pre-wrap text-sm leading-6 text-zinc-200">{item.text}</p>
             </li>
           ))}
