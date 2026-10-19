@@ -1,4 +1,4 @@
-# next-insights-rag
+# nexus-insights-rag
 
 Analysts ask one question over a small set of articles. The service answers from those articles 
 
