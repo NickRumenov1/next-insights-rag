@@ -2,6 +2,9 @@
 
 Analysts ask one question over a small set of articles. The service answers from those articles 
 
+## Stored prompts
+`prompts.jsonl`
+
 ## How to run it
 
 Add `OPENAI_API_KEY` & `OPENAI_MODEL` (e.g. `gpt-6.1-sol`) in `.env.local`
