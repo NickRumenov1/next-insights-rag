@@ -90,20 +90,20 @@ export async function indexForGraph(articleId: string, text: string): Promise<vo
 
 /** Entity types and predicates ranked by use in the graph; each generic seed counts as one extra use. */
 export function vocabulary() {
-  const mostUsedWithSeeds = (values: unknown[], seeds: string[]) => {
-    // Each initially seeded term starts with 1 use so it also ranks it with the new ones
-    const uses = new Map(seeds.map((seed) => [seed, 1]));
-    for (const value of values) {
-      if (typeof value === "string") uses.set(value, (uses.get(value) ?? 0) + 1);
-    }
-    return [...uses].sort((a, b) => b[1] - a[1]).slice(0, VOCABULARY_SIZE).map(([term]) => term);
-  };
-
   return {
-    entityTypes: mostUsedWithSeeds(graph.mapNodes((_, { type }) => type), SEED_ENTITIES),
-    predicates: mostUsedWithSeeds(graph.mapEdges((_, { predicate }) => predicate), SEED_PREDICATES),
+    entityTypes: mostUsed(graph.mapNodes((_, { type }) => type), SEED_ENTITIES),
+    predicates: mostUsed(graph.mapEdges((_, { predicate }) => predicate), SEED_PREDICATES),
   };
 }
+
+// Each initially seeded term starts with 1 use so it also ranks with the new ones.
+const mostUsed = (values: unknown[], seeds: string[]) => {
+  const uses = new Map(seeds.map((seed) => [seed, 1]));
+  for (const value of values) {
+    if (typeof value === "string") uses.set(value, (uses.get(value) ?? 0) + 1);
+  }
+  return [...uses].sort((a, b) => b[1] - a[1]).slice(0, VOCABULARY_SIZE).map(([term]) => term);
+};
 
 async function extractFacts(text: string): Promise<Fact[]> {
   const openai = new OpenAI();

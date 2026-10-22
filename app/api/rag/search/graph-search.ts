@@ -37,18 +37,22 @@ export function searchGraph(entities: string[], predicates: string[], limit = 30
 
 /** GPT step 1: names alone, so the node list can't pull in entities the question never wrote. Predicates come from the graph's own vocabulary. */
 async function extractQuery(query: string): Promise<{ names: string[]; predicates: string[] }> {
-  const known = vocabulary().predicates;
+  const { entityTypes: knownEntityTypes, predicates: knownPredicates } = vocabulary();
   const { names = [], predicates = [] } = await promptForJson(
-    `List the proper names of entities (${vocabulary().entityTypes.join(", ")}) written in the question, exactly as spelled. Skip generic words ("company", "who", "AI startups"). Also list the relations the question asks about, using only these predicates: ${known.join(", ")} (bought -> acquired). Use [] when none fits. Reply with JSON: {"names": [], "predicates": []}. Example: "Who acquired Salesforce?" -> {"names": ["Salesforce"], "predicates": ["acquired"]}.`,
+    `List the proper names of entities (${knownEntityTypes.join(", ")}) written in the question, exactly as spelled. Skip generic words ("company", "who", "AI startups").
+      Also list the relations the question asks about, using only these predicates: ${knownPredicates.join(", ")} (bought -> acquired). Use [] when none fits.
+      Reply with JSON: {"names": [], "predicates": []}. Example: "Who acquired Salesforce?" -> {"names": ["Salesforce"], "predicates": ["acquired"]}.`,
     query,
   );
-  return { names, predicates: predicates.filter((predicate) => known.includes(predicate)) };
+  return { names, predicates: predicates.filter((predicate) => knownPredicates.includes(predicate)) };
 }
 
 /** GPT step 2: maps each extracted name to an existing graph node. */
 async function mapNamesToNodes(names: string[]): Promise<string[]> {
   const { entities = [] } = await promptForJson(
-    `Map each given name to a graph node. Match the same entity only: an alias, a legal suffix, or a typo of that exact name ("Slak" -> "Slack"). A different real word is not a match ("Stack" is not "Slack"). Skip names with no node. Reply with JSON: {"entities": ["<exact node name>"]}.`,
+    `Map each given name to a graph node. Match the same entity only: an alias, a legal suffix, or a typo of that exact name ("Slak" -> "Slack").
+      A different real word is not a match ("Stack" is not "Slack"). Skip names with no node.
+      Reply with JSON: {"entities": ["<exact node name>"]}.`,
     `Nodes:\n${graph.nodes().join("\n")}\n\nNames: ${JSON.stringify(names)}`,
   );
   return entities;
